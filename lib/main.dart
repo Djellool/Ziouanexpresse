@@ -1,117 +1,346 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:responsive_flutter/responsive_flutter.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-        // This makes the visual density adapt to the platform that you run
-        // the app on. For desktop platforms, the controls will be smaller and
-        // closer together (more dense) than on mobile platforms.
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HomePage extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage> {
+  Color grey = Color(0xFFC4C4C4);
+  Color grey2 = Color(0xFF646464);
+  Color background = Color(0xFFF2F2F2);
+  Color green = Color(0xFF4ED964);
+  Color red = Color(0xFFFF3A32);
+  Color orange = Color(0xFFF28322);
+  Color Blue = Color(0xFF382B8C);
+  Completer<GoogleMapController> _controller = Completer();
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  static const LatLng _center = const LatLng(45.521563, -122.677433);
+
+  // This widget is the root of your application.
+  void _onMapCreated(GoogleMapController controller) {
+    _controller.complete(controller);
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
+    var screenheigh = MediaQuery.of(context).size.height;
+    var screenwidth = MediaQuery.of(context).size.width;
+    print(screenheigh);
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+            GoogleMap(
+              onMapCreated: _onMapCreated,
+              initialCameraPosition: CameraPosition(
+                target: _center,
+                zoom: 11.0,
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: FloatingActionButton(
+                  onPressed: () => print('button pressed'),
+                  backgroundColor: Blue,
+                  child: const Icon(Icons.list, size: 36.0),
+                ),
+              ),
             ),
+            Positioned(
+              top: screenheigh * 0.55,
+              child: Container(
+                  height: screenheigh * 0.45,
+                  width: screenwidth,
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.only(topLeft: Radius.circular(50)),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(color: Blue, spreadRadius: 3),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
+                        child: Container(
+                          child: TextField(
+                            style: TextStyle(
+                                color: Blue,
+                                fontSize:
+                                    ResponsiveFlutter.of(context).fontSize(2),
+                                fontFamily: "Nunito",
+                                fontWeight: FontWeight.bold),
+                            decoration: InputDecoration(
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
+                              focusColor: Blue,
+                              border: UnderlineInputBorder(
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(20.0),
+                                    bottomRight: Radius.circular(20.0),
+                                    bottomLeft: Radius.circular(20.0)),
+                                borderSide: BorderSide(
+                                  width: 0,
+                                  style: BorderStyle.none,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              labelText: "Location expediteur",
+                              labelStyle: TextStyle(
+                                  color: Colors.black,
+                                  fontFamily: "Nunito",
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: ResponsiveFlutter.of(context)
+                                      .fontSize(2.5)),
+                              hintText: "Hydra",
+                              hintStyle: TextStyle(
+                                color: grey,
+                                fontSize:
+                                    ResponsiveFlutter.of(context).fontSize(2),
+                                fontFamily: "Nunito",
+                              ),
+                              suffixIcon: Icon(
+                                Icons.local_shipping,
+                                color: Blue,
+                              ),
+                            ),
+                          ),
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black38,
+                                blurRadius: 25,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, bottom: 10),
+                        child: Container(
+                          child: TextField(
+                            style: TextStyle(
+                                color: Blue,
+                                fontSize:
+                                    ResponsiveFlutter.of(context).fontSize(2),
+                                fontFamily: "Nunito",
+                                fontWeight: FontWeight.bold),
+                            decoration: InputDecoration(
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
+                              focusColor: Blue,
+                              border: UnderlineInputBorder(
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(20.0),
+                                    bottomRight: Radius.circular(20.0),
+                                    bottomLeft: Radius.circular(20.0)),
+                                borderSide: BorderSide(
+                                  width: 0,
+                                  style: BorderStyle.none,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              labelText: "Location destinataire",
+                              labelStyle: TextStyle(
+                                  color: Colors.black,
+                                  fontFamily: "Nunito",
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: ResponsiveFlutter.of(context)
+                                      .fontSize(2.5)),
+                              hintText: "OuedSmar",
+                              hintStyle: TextStyle(
+                                color: grey,
+                                fontSize:
+                                    ResponsiveFlutter.of(context).fontSize(2),
+                                fontFamily: "Nunito",
+                              ),
+                              suffixIcon: Icon(
+                                Icons.backpack,
+                                color: Blue,
+                              ),
+                            ),
+                          ),
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black38,
+                                blurRadius: 25,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Divider(
+                        color: Blue,
+                        thickness: 3,
+                        endIndent: screenwidth * 0.2,
+                        indent: screenwidth * 0.2,
+                      ),
+                      SizedBox(
+                        height: screenheigh * 0.01,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Container(
+                              width: screenwidth * 0.45,
+                              height: screenheigh * 0.07,
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black38,
+                                    blurRadius: 25,
+                                  ),
+                                ],
+                              ),
+                              child: RaisedButton(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(20.0),
+                                          bottomLeft: Radius.circular(20.0),
+                                          bottomRight: Radius.circular(20.0))),
+                                  onPressed: () {
+                                    print('Button Clicked.');
+                                  },
+                                  color: Colors.white,
+                                  child: Padding(
+                                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding: EdgeInsets.fromLTRB(
+                                                4, 0, 10, 0),
+                                            child: Icon(
+                                              Icons.backup,
+                                              color: Blue,
+                                              size: 30,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding:
+                                                EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                            child: Text('Colis',
+                                                style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize:
+                                                        ResponsiveFlutter.of(
+                                                                context)
+                                                            .fontSize(2.3),
+                                                    fontFamily: "Nunito",
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ),
+                                        ],
+                                      )))),
+                          Container(
+                              width: screenwidth * 0.45,
+                              height: screenheigh * 0.07,
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black38,
+                                    blurRadius: 25,
+                                  ),
+                                ],
+                              ),
+                              child: RaisedButton(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(20.0),
+                                          bottomLeft: Radius.circular(20.0),
+                                          bottomRight: Radius.circular(20.0))),
+                                  onPressed: () {
+                                    print('Button Clicked.');
+                                  },
+                                  color: Colors.white,
+                                  child: Padding(
+                                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding:
+                                                EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                            child: Icon(
+                                              Icons.backup,
+                                              color: Blue,
+                                              size: 30,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding:
+                                                EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                            child: Text('Destinataire',
+                                                style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize:
+                                                        ResponsiveFlutter.of(
+                                                                context)
+                                                            .fontSize(2.3),
+                                                    fontFamily: "Nunito",
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ),
+                                        ],
+                                      )))),
+                        ],
+                      ),
+                      SizedBox(
+                        height: screenheigh * 0.02,
+                      ),
+                      Container(
+                        height: screenheigh * 0.06,
+                        width: screenwidth * 0.6,
+                        child: RaisedButton(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(20.0),
+                                    bottomLeft: Radius.circular(20.0),
+                                    bottomRight: Radius.circular(20.0))),
+                            onPressed: () {
+                              print('Button Clicked.');
+                            },
+                            color: Blue,
+                            child: Text("Commander",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: ResponsiveFlutter.of(context)
+                                        .fontSize(2.3),
+                                    fontFamily: "Nunito",
+                                    fontWeight: FontWeight.bold))),
+                      ),
+                    ],
+                  )),
+            )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
