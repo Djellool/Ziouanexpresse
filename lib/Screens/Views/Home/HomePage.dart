@@ -16,7 +16,7 @@ class _HomePageState extends State<HomePage> {
   Color green = Color(0xFF4ED964);
   Color red = Color(0xFFFF3A32);
   Color orange = Color(0xFFF28322);
-  Color Blue = Color(0xFF382B8C);
+  Color blue = Color(0xFF382B8C);
   Completer<GoogleMapController> _controller = Completer();
 
   static const LatLng _center = const LatLng(45.521563, -122.677433);
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     scaffoldKey.currentState.openDrawer();
                   },
-                  backgroundColor: Blue,
+                  backgroundColor: blue,
                   child: const Icon(Icons.list, size: 36.0),
                 ),
               ),
@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage> {
                         BorderRadius.only(topLeft: Radius.circular(50)),
                     color: Colors.white,
                     boxShadow: [
-                      BoxShadow(color: Blue, spreadRadius: 3),
+                      BoxShadow(color: blue, spreadRadius: 3),
                     ],
                   ),
                   child: Column(
@@ -78,14 +78,14 @@ class _HomePageState extends State<HomePage> {
                         child: Container(
                           child: TextField(
                             style: TextStyle(
-                                color: Blue,
+                                color: blue,
                                 fontSize:
                                     ResponsiveFlutter.of(context).fontSize(2),
                                 fontFamily: "Nunito",
                                 fontWeight: FontWeight.bold),
                             decoration: InputDecoration(
                               floatingLabelBehavior: FloatingLabelBehavior.auto,
-                              focusColor: Blue,
+                              focusColor: blue,
                               border: UnderlineInputBorder(
                                 borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(20.0),
@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               suffixIcon: Icon(
                                 Icons.local_shipping,
-                                color: Blue,
+                                color: blue,
                               ),
                             ),
                           ),
@@ -134,14 +134,14 @@ class _HomePageState extends State<HomePage> {
                         child: Container(
                           child: TextField(
                             style: TextStyle(
-                                color: Blue,
+                                color: blue,
                                 fontSize:
                                     ResponsiveFlutter.of(context).fontSize(2),
                                 fontFamily: "Nunito",
                                 fontWeight: FontWeight.bold),
                             decoration: InputDecoration(
                               floatingLabelBehavior: FloatingLabelBehavior.auto,
-                              focusColor: Blue,
+                              focusColor: blue,
                               border: UnderlineInputBorder(
                                 borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(20.0),
@@ -170,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               suffixIcon: Icon(
                                 Icons.backpack,
-                                color: Blue,
+                                color: blue,
                               ),
                             ),
                           ),
@@ -185,7 +185,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Divider(
-                        color: Blue,
+                        color: blue,
                         thickness: 3,
                         endIndent: screenwidth * 0.2,
                         indent: screenwidth * 0.2,
@@ -228,7 +228,7 @@ class _HomePageState extends State<HomePage> {
                                                 4, 0, 10, 0),
                                             child: Icon(
                                               Icons.backup,
-                                              color: Blue,
+                                              color: blue,
                                               size: 30,
                                             ),
                                           ),
@@ -280,7 +280,7 @@ class _HomePageState extends State<HomePage> {
                                                 EdgeInsets.fromLTRB(0, 0, 0, 0),
                                             child: Icon(
                                               Icons.backup,
-                                              color: Blue,
+                                              color: blue,
                                               size: 30,
                                             ),
                                           ),
@@ -317,7 +317,7 @@ class _HomePageState extends State<HomePage> {
                             onPressed: () {
                               print('Button Clicked.');
                             },
-                            color: Blue,
+                            color: blue,
                             child: Text("Commander",
                                 style: TextStyle(
                                     color: Colors.white,
