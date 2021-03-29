@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "441495251811",
+    "project_id": "zeclient-4aa85",
+    "storage_bucket": "zeclient-4aa85.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:441495251811:android:930dfaa57b46ced04bc156",
+        "android_client_info": {
+          "package_name": "com.example.ziouanexpress"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "441495251811-jf73k1e3a0i3ielg4g0q0tpgdu7iller.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ziouanexpress",
+            "certificate_hash": "9dd0c34e186653025a821a5d5ef4d4df24fc60f1"
+          }
+        },
+        {
+          "client_id": "441495251811-p712cjv3n6la9c2rngn02b211o7rs5d1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsexSTT3u9Iyh_Jug1FpxkYMInHTz4jBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "441495251811-p712cjv3n6la9c2rngn02b211o7rs5d1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
