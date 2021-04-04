@@ -130,8 +130,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: ResponsiveFlutter.of(context).fontSize(2),
                             fontFamily: "Nunito",
                             fontWeight: FontWeight.bold),
-                        decoration: CommonSyles.textDecoration(
-                            context, "Numéro de téléphone"),
+                        decoration:
+                            CommonSyles.textDecoration(context, "poids", null),
                       ),
                       decoration: BoxDecoration(
                         boxShadow: [

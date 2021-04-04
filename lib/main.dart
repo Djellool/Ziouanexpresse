@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Provider/InscriptionProvider.dart';
-import 'package:ziouanexpress/Screens/Views/Login-Inscription/LoginScreen.dart';
 import 'package:ziouanexpress/Screens/Views/Profile/Profile.dart';
 
 void main() {
