@@ -3,7 +3,6 @@ import 'package:responsive_flutter/responsive_flutter.dart';
 
 class CommonSyles {
   static textDecoration(BuildContext context, String label, Icon icon) {
-    Color blue = Color(0xFF382B8C);
     return InputDecoration(
         floatingLabelBehavior: FloatingLabelBehavior.auto,
         border: UnderlineInputBorder(

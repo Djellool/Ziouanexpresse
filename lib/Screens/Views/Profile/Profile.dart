@@ -127,7 +127,7 @@ class _ProfilePageState extends State<ProfilePage> {
               fontSize: ResponsiveFlutter.of(context).fontSize(2),
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
-          decoration: CommonSyles.textDecoration(context, "Nom"),
+          decoration: CommonSyles.textDecoration(context, "Nom", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [
@@ -157,7 +157,7 @@ class _ProfilePageState extends State<ProfilePage> {
               fontSize: ResponsiveFlutter.of(context).fontSize(2),
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
-          decoration: CommonSyles.textDecoration(context, "Prenom"),
+          decoration: CommonSyles.textDecoration(context, "Prenom", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [
@@ -188,7 +188,7 @@ class _ProfilePageState extends State<ProfilePage> {
               fontSize: ResponsiveFlutter.of(context).fontSize(2),
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
-          decoration: CommonSyles.textDecoration(context, "Adresse mail"),
+          decoration: CommonSyles.textDecoration(context, "Adresse mail", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [
@@ -219,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
           decoration:
-              CommonSyles.textDecoration(context, "Numéro de téléphone"),
+              CommonSyles.textDecoration(context, "Numéro de téléphone", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [

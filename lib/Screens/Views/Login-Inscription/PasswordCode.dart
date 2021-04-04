@@ -120,7 +120,8 @@ class _PasswordCodeScreenState extends State<PasswordCodeScreen> {
                             fontSize: ResponsiveFlutter.of(context).fontSize(2),
                             fontFamily: "Nunito",
                             fontWeight: FontWeight.bold),
-                        decoration: CommonSyles.textDecoration(context, "Code"),
+                        decoration:
+                            CommonSyles.textDecoration(context, "Code", null),
                       ),
                       decoration: BoxDecoration(
                         boxShadow: [

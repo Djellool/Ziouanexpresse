@@ -209,7 +209,7 @@ class _InscriptionScreenState extends State<InscriptionScreen> {
               fontSize: ResponsiveFlutter.of(context).fontSize(2),
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
-          decoration: CommonSyles.textDecoration(context, "Nom"),
+          decoration: CommonSyles.textDecoration(context, "Nom", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [
@@ -244,7 +244,7 @@ class _InscriptionScreenState extends State<InscriptionScreen> {
               fontSize: ResponsiveFlutter.of(context).fontSize(2),
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
-          decoration: CommonSyles.textDecoration(context, "Prénom"),
+          decoration: CommonSyles.textDecoration(context, "Prénom", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [
@@ -278,7 +278,7 @@ class _InscriptionScreenState extends State<InscriptionScreen> {
               fontSize: ResponsiveFlutter.of(context).fontSize(2),
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
-          decoration: CommonSyles.textDecoration(context, "Adresse mail"),
+          decoration: CommonSyles.textDecoration(context, "Adresse mail", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [
@@ -313,7 +313,7 @@ class _InscriptionScreenState extends State<InscriptionScreen> {
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
           decoration:
-              CommonSyles.textDecoration(context, "Numéro de téléphone"),
+              CommonSyles.textDecoration(context, "Numéro de téléphone", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [

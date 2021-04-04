@@ -130,7 +130,7 @@ class _ForgottenPasswordScreenState extends State<ForgottenPasswordScreen> {
                             fontFamily: "Nunito",
                             fontWeight: FontWeight.bold),
                         decoration: CommonSyles.textDecoration(
-                            context, "Numéro de téléphone"),
+                            context, "Numéro de téléphone", null),
                       ),
                       decoration: BoxDecoration(
                         boxShadow: [

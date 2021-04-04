@@ -34,8 +34,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
-    TextEditingController Locationexp = TextEditingController();
-    TextEditingController Locationdes = TextEditingController();
+    TextEditingController locationexp = TextEditingController();
+    TextEditingController locationdes = TextEditingController();
     var scaffoldKey = GlobalKey<ScaffoldState>();
     return SafeArea(
       child: Scaffold(
@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                             top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
                         child: Container(
                           child: TextField(
-                            controller: Locationexp,
+                            controller: locationexp,
                             style: TextStyle(
                                 color: blue,
                                 fontSize:
@@ -140,7 +140,7 @@ class _HomePageState extends State<HomePage> {
                             left: 16.0, right: 16.0, bottom: 10),
                         child: Container(
                           child: TextField(
-                            controller: Locationdes,
+                            controller: locationdes,
                             style: TextStyle(
                                 color: blue,
                                 fontSize:
@@ -482,9 +482,9 @@ class _HomePageState extends State<HomePage> {
                 decoration:
                     CommonSyles.textDecoration(context, "Fragilite", null),
                 value: selectedUser,
-                onChanged: (String Value) {
+                onChanged: (String value) {
                   setState(() {
-                    selectedUser = Value;
+                    selectedUser = value;
                   });
                 },
                 items: _fragilite.map((location) {
@@ -687,7 +687,7 @@ class _HomePageState extends State<HomePage> {
 
 class NavDrawer extends StatelessWidget {
   final Color violet = Color(0xFF382B8C);
-  Color blue = Color(0xFF382B8C);
+  final Color blue = Color(0xFF382B8C);
   @override
   Widget build(BuildContext context) {
     var screenheigh = MediaQuery.of(context).size.height;
