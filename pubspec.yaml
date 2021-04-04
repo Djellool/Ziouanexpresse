@@ -26,6 +26,9 @@ dependencies:
   provider: ^4.3.3
   responsive_flutter:
   google_maps_flutter:
+  pinput:
+  custom_timer:
+  url_launcher:
   flutter_signin_button:
   font_awesome_flutter:
 

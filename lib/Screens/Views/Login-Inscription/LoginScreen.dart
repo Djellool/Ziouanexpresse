@@ -3,22 +3,40 @@ import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
+import 'package:ziouanexpress/Screens/Views/Login-Inscription/ForgottenPassword.dart';
+import 'package:ziouanexpress/Screens/Views/Login-Inscription/InscriptionScreen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final Color violet = Color(0xFF382B8C);
   final Color white = Colors.white;
   final Color grey = Color(0xFFC4C4C4);
   final Color orange = Color(0xFFF28322);
   final Color blue = Color(0xFF382B8C);
   final Color grey2 = Color(0xFF646464);
+
   TextEditingController phoneController =
       TextEditingController(text: "0557081936");
   TextEditingController passwordController =
       TextEditingController(text: "password");
+
+  @override
+  void dispose() {
+    super.dispose();
+    phoneController.dispose();
+    passwordController.dispose();
+  }
+
   final GlobalKey formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
+    final node = FocusScope.of(context);
+
     return Scaffold(
       body: Container(
         child: SingleChildScrollView(
@@ -41,7 +59,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
                 logo(context),
-                loginForm(context),
+                loginForm(context, node),
               ],
             ),
           ),
@@ -72,7 +90,7 @@ class LoginScreen extends StatelessWidget {
         ));
   }
 
-  Widget loginForm(BuildContext context) {
+  Widget loginForm(BuildContext context, FocusNode node) {
     return Positioned(
         top: ResponsiveFlutter.of(context).hp(35),
         bottom: 0,
@@ -99,11 +117,15 @@ class LoginScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(
                         top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
                     child: Container(
-                      child: TextField(
+                      child: TextFormField(
+                        onEditingComplete: () => node.nextFocus(),
+                        textInputAction: TextInputAction.next,
+                        validator: (value) => validation(value),
                         controller: phoneController,
                         cursorColor: grey2,
                         keyboardType: TextInputType.phone,
                         style: TextStyle(
+                            letterSpacing: 01,
                             color: grey2,
                             fontSize: ResponsiveFlutter.of(context).fontSize(2),
                             fontFamily: "Nunito",
@@ -125,12 +147,16 @@ class LoginScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(
                         top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
                     child: Container(
-                      child: TextField(
+                      child: TextFormField(
+                        onEditingComplete: () => node.unfocus(),
+                        textInputAction: TextInputAction.done,
+                        validator: (value) => validation(value),
                         controller: passwordController,
                         cursorColor: grey2,
                         obscureText: Provider.of<GeneralProvider>(context)
                             .loginVisibility,
                         style: TextStyle(
+                            letterSpacing: 01,
                             color: grey2,
                             fontSize: ResponsiveFlutter.of(context).fontSize(2),
                             fontFamily: "Nunito",
@@ -211,7 +237,14 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   FlatButton(
-                      onPressed: null,
+                      onPressed: () {
+                        node.unfocus();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ForgottenPasswordScreen()));
+                      },
                       child: Text("Mot de passe oublié !",
                           style: TextStyle(
                               color: violet,
@@ -235,7 +268,13 @@ class LoginScreen extends StatelessWidget {
                         ),
                         FlatButton(
                             padding: EdgeInsets.all(0),
-                            onPressed: null,
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          InscriptionScreen()));
+                            },
                             child: Text(
                               "Inscrivez-vous !",
                               style: TextStyle(
@@ -252,5 +291,12 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
         ));
+  }
+
+  String validation(String value) {
+    if (value.length == 0) {
+      return "Veuillez entrer une valeur !";
+    }
+    return null;
   }
 }
