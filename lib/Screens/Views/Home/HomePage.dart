@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Screens/Components/icons_class.dart';
+import 'package:ziouanexpress/Screens/Views/Home/ConfirmerCommande.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -332,7 +333,11 @@ class _HomePageState extends State<HomePage> {
                                     bottomLeft: Radius.circular(20.0),
                                     bottomRight: Radius.circular(20.0))),
                             onPressed: () {
-                              print('Button Clicked.');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ConfirmerCommande()),
+                              );
                             },
                             color: blue,
                             child: Text("Commander",

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Views/Home/ConfirmerCommande.dart';
+import 'package:ziouanexpress/Screens/Views/Home/HomePage.dart';
 
 void main() {
   runApp(MultiProvider(providers: [
@@ -22,7 +23,7 @@ class ZeClient extends StatelessWidget {
             switch (auth.authenticated) {
               case "loggedout":
                 {
-                  return ConfirmerCommande();
+                  return HomePage();
                 }
                 break;
             }
