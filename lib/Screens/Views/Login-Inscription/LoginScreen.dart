@@ -108,7 +108,8 @@ class LoginScreen extends StatelessWidget {
                             fontSize: ResponsiveFlutter.of(context).fontSize(2),
                             fontFamily: "Nunito",
                             fontWeight: FontWeight.bold),
-                        decoration: CommonSyles.textDecoration(context),
+                        decoration:
+                            CommonSyles.textDecoration(context, "poids", null),
                       ),
                       decoration: BoxDecoration(
                         boxShadow: [

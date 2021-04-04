@@ -26,6 +26,8 @@ dependencies:
   provider: ^4.3.3
   responsive_flutter:
   google_maps_flutter:
+  flutter_signin_button:
+  font_awesome_flutter:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -68,6 +70,9 @@ flutter:
         - asset: assets/fonts/Nunito-SemiBold.ttf
         - asset: assets/fonts/Nunito-Bold.ttf
         - asset: assets/fonts/Nunito-LightItalic.ttf
+    - family: IconsClass
+      fonts:
+        - asset: assets/fonts/IconsClass.ttf
 
   #   - family: Schyler
   #     fonts:
