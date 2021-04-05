@@ -7,6 +7,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Screens/Components/icons_class.dart';
+import 'package:ziouanexpress/Screens/Views/Historique/Historique.dart';
+import 'package:ziouanexpress/Screens/Views/Profile/Profile.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -729,84 +731,96 @@ class NavDrawer extends StatelessWidget {
             ),
           ),
           SizedBox(height: screenheigh * 0.04),
-          ListTile(
-            leading: Icon(
-              Icons.account_circle,
-              color: blue,
-              size: 45,
-            ),
-            title: Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Profile',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+          FlatButton(
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => ProfilePage())),
+            child: ListTile(
+              leading: Icon(
+                Icons.account_circle,
+                color: blue,
+                size: 45,
+              ),
+              title: Container(
+                margin: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Profile',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+                ),
               ),
             ),
-            onTap: () => {Navigator.of(context).pop()},
           ),
           SizedBox(height: screenheigh * 0.02),
-          ListTile(
-            leading: Icon(
-              Icons.history,
-              color: blue,
-              size: 45,
-            ),
-            title: Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Historique',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+          FlatButton(
+            onPressed: () => Navigator.push(
+                context, MaterialPageRoute(builder: (context) => Historique())),
+            child: ListTile(
+              leading: Icon(
+                Icons.history,
+                color: blue,
+                size: 45,
+              ),
+              title: Container(
+                margin: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Historique',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+                ),
               ),
             ),
-            onTap: () => {Navigator.of(context).pop()},
           ),
           SizedBox(height: screenheigh * 0.02),
-          ListTile(
-            leading: Icon(
-              Icons.money_off_csred_rounded,
-              size: 45,
-              color: blue,
-            ),
-            title: Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Promotions',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+          FlatButton(
+            onPressed: null,
+            child: ListTile(
+              leading: Icon(
+                Icons.money_off_csred_rounded,
+                size: 45,
+                color: blue,
               ),
+              title: Container(
+                margin: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Promotions',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+                ),
+              ),
+              onTap: () => {Navigator.of(context).pop()},
             ),
-            onTap: () => {Navigator.of(context).pop()},
           ),
           SizedBox(height: screenheigh * 0.02),
-          ListTile(
-            leading: Icon(
-              Icons.group_rounded,
-              size: 45,
-              color: blue,
-            ),
-            title: Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Parrainage',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+          FlatButton(
+            onPressed: null,
+            child: ListTile(
+              leading: Icon(
+                Icons.group_rounded,
+                size: 45,
+                color: blue,
               ),
+              title: Container(
+                margin: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Parrainage',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+                ),
+              ),
+              onTap: () => {Navigator.of(context).pop()},
             ),
-            onTap: () => {Navigator.of(context).pop()},
           ),
           SizedBox(height: screenheigh * 0.15),
           Center(
