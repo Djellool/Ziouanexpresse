@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 
 class CommonSyles {
@@ -24,6 +25,20 @@ class CommonSyles {
             fontWeight: FontWeight.bold,
             fontSize: ResponsiveFlutter.of(context).fontSize(2.5)),
         suffixIcon: icon);
+  }
+
+  static containerDecoration(BuildContext context) {
+    final Color violet = Color(0xFF382B8C);
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20)),
+      boxShadow: [
+        BoxShadow(blurRadius: 10, color: Colors.grey),
+      ],
+    );
   }
 
   static pinDecoration() {
