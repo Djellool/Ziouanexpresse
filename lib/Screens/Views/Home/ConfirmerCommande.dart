@@ -31,17 +31,17 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
   Widget build(BuildContext context) {
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
-    TextEditingController Locationexp =
+    TextEditingController locationexp =
         TextEditingController(text: "El Herrach");
-    TextEditingController Locationdes =
+    TextEditingController locationdes =
         TextEditingController(text: "Ain naadja");
     TextEditingController dimension = TextEditingController(text: "400 x 600");
     TextEditingController poids = TextEditingController(text: "12.5 kg");
     TextEditingController valeur = TextEditingController(text: "15000");
     TextEditingController fragilite = TextEditingController(text: "Solide");
-    TextEditingController Nom = TextEditingController(text: "Yessad");
-    TextEditingController Prenom = TextEditingController(text: "Samy");
-    TextEditingController Telephone = TextEditingController(text: "0561403441");
+    TextEditingController nom = TextEditingController(text: "Yessad");
+    TextEditingController prenom = TextEditingController(text: "Samy");
+    TextEditingController telephone = TextEditingController(text: "0561403441");
     return SafeArea(
       child: Scaffold(
         body: Stack(
@@ -131,7 +131,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                         ),
                                         child: Container(
                                           child: TextField(
-                                              controller: Locationexp,
+                                              controller: locationexp,
                                               readOnly: true,
                                               style: TextStyle(
                                                   color: blue,
@@ -167,7 +167,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                             bottom: 10),
                                         child: Container(
                                           child: TextField(
-                                              controller: Locationdes,
+                                              controller: locationdes,
                                               readOnly: true,
                                               style: TextStyle(
                                                   color: blue,
@@ -393,7 +393,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                             bottom: 10),
                                         child: Container(
                                           child: TextField(
-                                              controller: Nom,
+                                              controller: nom,
                                               readOnly: true,
                                               style: TextStyle(
                                                   color: blue,
@@ -429,7 +429,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                             bottom: 10),
                                         child: Container(
                                           child: TextField(
-                                              controller: Prenom,
+                                              controller: prenom,
                                               readOnly: true,
                                               style: TextStyle(
                                                   color: blue,
@@ -465,7 +465,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                             bottom: 10),
                                         child: Container(
                                           child: TextField(
-                                              controller: Telephone,
+                                              controller: telephone,
                                               readOnly: true,
                                               style: TextStyle(
                                                   color: blue,

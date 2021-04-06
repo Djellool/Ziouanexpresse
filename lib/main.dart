@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Provider/InscriptionProvider.dart';
+import 'package:ziouanexpress/Screens/Views/Historique/Historique.dart';
 import 'package:ziouanexpress/Screens/Views/Home/HomePage.dart';
+import 'package:ziouanexpress/Screens/Views/Login-Inscription/LoginScreen.dart';
 import 'package:ziouanexpress/Screens/Views/Parrainage/Parrainage.dart';
-import 'package:ziouanexpress/Screens/Views/Promotion/Promotion.dart';
 
 void main() {
   runApp(MultiProvider(providers: [
@@ -27,7 +28,7 @@ class ZeClient extends StatelessWidget {
             switch (auth.authenticated) {
               case "loggedout":
                 {
-                  return HomePage();
+                  return LoginScreen();
                 }
                 break;
             }

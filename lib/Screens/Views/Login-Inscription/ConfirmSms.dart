@@ -112,7 +112,7 @@ class _ConfirmSmsScreenState extends State<ConfirmSmsScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 40),
                         child: Text(
-                            "Veuillez entrer le code reçu par SMS\nsur +213$phoneNumber",
+                            "Veuillez introduire le code reçu par SMS\nsur +213$phoneNumber",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: violet,
@@ -158,6 +158,7 @@ class _ConfirmSmsScreenState extends State<ConfirmSmsScreen> {
   Widget renvoyerfield() {
     bool renvoyer = Provider.of<GeneralProvider>(context).renvoyerIns;
     return Container(
+      margin: EdgeInsets.only(bottom: ResponsiveFlutter.of(context).scale(20)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [

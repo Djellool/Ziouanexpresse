@@ -88,7 +88,7 @@ class CommonSyles {
         title,
         style: TextStyle(
           fontFamily: "Nunito",
-          fontSize: ResponsiveFlutter.of(context).fontSize(4),
+          fontSize: ResponsiveFlutter.of(context).fontSize(3.5),
           fontWeight: FontWeight.bold,
           color: Color(0xFF382B8C),
         ),

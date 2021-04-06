@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Screens/Components/icons_class.dart';
-import 'package:ziouanexpress/Screens/Views/Home/ConfirmerCommande.dart';
+import 'package:ziouanexpress/Screens/Views/Historique/Historique.dart';
+import 'package:ziouanexpress/Screens/Views/Parrainage/Parrainage.dart';
+import 'package:ziouanexpress/Screens/Views/Profile/Profile.dart';
+import 'package:ziouanexpress/Screens/Views/Promotion/Promotion.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -31,13 +35,23 @@ class _HomePageState extends State<HomePage> {
     _controller.complete(controller);
   }
 
+  TextEditingController dimension = TextEditingController(text: "200 x 500");
+  TextEditingController poids = TextEditingController(text: "16 kg");
+  TextEditingController value = TextEditingController(text: "30000");
+  TextEditingController locationexp = TextEditingController();
+  TextEditingController locationdes = TextEditingController();
+  TextEditingController nom = TextEditingController();
+  TextEditingController prenom = TextEditingController();
+  TextEditingController telephone = TextEditingController();
+
+  final formKey = GlobalKey<FormState>();
+  var scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
-    TextEditingController Locationexp = TextEditingController();
-    TextEditingController Locationdes = TextEditingController();
-    var scaffoldKey = GlobalKey<ScaffoldState>();
+    final node = FocusScope.of(context);
+
     return SafeArea(
       child: Scaffold(
         key: scaffoldKey,
@@ -65,9 +79,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Positioned(
-              top: screenheigh * 0.55,
+              bottom: 0,
               child: Container(
-                  height: screenheigh * 0.45,
+                  height: screenheigh * 0.4,
                   width: screenwidth,
                   decoration: BoxDecoration(
                     borderRadius:
@@ -77,278 +91,287 @@ class _HomePageState extends State<HomePage> {
                       BoxShadow(color: blue, spreadRadius: 3),
                     ],
                   ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
-                        child: Container(
-                          child: TextField(
-                            controller: Locationexp,
-                            style: TextStyle(
-                                color: blue,
-                                fontSize:
-                                    ResponsiveFlutter.of(context).fontSize(2),
-                                fontFamily: "Nunito",
-                                fontWeight: FontWeight.bold),
-                            decoration: InputDecoration(
-                              floatingLabelBehavior: FloatingLabelBehavior.auto,
-                              focusColor: blue,
-                              border: UnderlineInputBorder(
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(20.0),
-                                    bottomRight: Radius.circular(20.0),
-                                    bottomLeft: Radius.circular(20.0)),
-                                borderSide: BorderSide(
-                                  width: 0,
-                                  style: BorderStyle.none,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              labelText: "Location expediteur",
-                              labelStyle: TextStyle(
-                                  color: Colors.black,
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
+                          child: Container(
+                            child: TextFormField(
+                              onEditingComplete: () => node.nextFocus(),
+                              textInputAction: TextInputAction.next,
+                              controller: locationexp,
+                              style: TextStyle(
+                                  color: blue,
+                                  fontSize:
+                                      ResponsiveFlutter.of(context).fontSize(2),
                                   fontFamily: "Nunito",
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: ResponsiveFlutter.of(context)
-                                      .fontSize(2.5)),
-                              hintText: "Hydra",
-                              hintStyle: TextStyle(
-                                color: grey,
-                                fontSize:
-                                    ResponsiveFlutter.of(context).fontSize(2),
-                                fontFamily: "Nunito",
-                              ),
-                              suffixIcon: Icon(
-                                Icons.local_shipping,
-                                color: blue,
-                              ),
-                            ),
-                          ),
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black38,
-                                blurRadius: 25,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, bottom: 10),
-                        child: Container(
-                          child: TextField(
-                            controller: Locationdes,
-                            style: TextStyle(
-                                color: blue,
-                                fontSize:
-                                    ResponsiveFlutter.of(context).fontSize(2),
-                                fontFamily: "Nunito",
-                                fontWeight: FontWeight.bold),
-                            decoration: InputDecoration(
-                              floatingLabelBehavior: FloatingLabelBehavior.auto,
-                              focusColor: blue,
-                              border: UnderlineInputBorder(
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(20.0),
-                                    bottomRight: Radius.circular(20.0),
-                                    bottomLeft: Radius.circular(20.0)),
-                                borderSide: BorderSide(
-                                  width: 0,
-                                  style: BorderStyle.none,
+                                  fontWeight: FontWeight.bold),
+                              decoration: InputDecoration(
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.auto,
+                                focusColor: blue,
+                                border: UnderlineInputBorder(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(20.0),
+                                      bottomRight: Radius.circular(20.0),
+                                      bottomLeft: Radius.circular(20.0)),
+                                  borderSide: BorderSide(
+                                    width: 0,
+                                    style: BorderStyle.none,
+                                  ),
                                 ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              labelText: "Location destinataire",
-                              labelStyle: TextStyle(
-                                  color: Colors.black,
-                                  fontFamily: "Nunito",
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: ResponsiveFlutter.of(context)
-                                      .fontSize(2.5)),
-                              hintText: "OuedSmar",
-                              hintStyle: TextStyle(
-                                color: grey,
-                                fontSize:
-                                    ResponsiveFlutter.of(context).fontSize(2),
-                                fontFamily: "Nunito",
-                              ),
-                              suffixIcon: Icon(
-                                Icons.backpack,
-                                color: blue,
-                              ),
-                            ),
-                          ),
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black38,
-                                blurRadius: 25,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Divider(
-                        color: blue,
-                        thickness: 3,
-                        endIndent: screenwidth * 0.2,
-                        indent: screenwidth * 0.2,
-                      ),
-                      SizedBox(
-                        height: screenheigh * 0.01,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Container(
-                              width: screenwidth * 0.45,
-                              height: screenheigh * 0.07,
-                              decoration: BoxDecoration(
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black38,
-                                    blurRadius: 25,
-                                  ),
-                                ],
-                              ),
-                              child: RaisedButton(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(20.0),
-                                          bottomLeft: Radius.circular(20.0),
-                                          bottomRight: Radius.circular(20.0))),
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) =>
-                                          _buildPopupDialog(context),
-                                    );
-                                  },
-                                  color: Colors.white,
-                                  child: Padding(
-                                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: EdgeInsets.fromLTRB(
-                                                4, 0, 10, 0),
-                                            child: Icon(
-                                              Icons.backup,
-                                              color: blue,
-                                              size: 30,
-                                            ),
-                                          ),
-                                          Container(
-                                            padding:
-                                                EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                            child: Text('Colis',
-                                                style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize:
-                                                        ResponsiveFlutter.of(
-                                                                context)
-                                                            .fontSize(2.3),
-                                                    fontFamily: "Nunito",
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                          ),
-                                        ],
-                                      )))),
-                          Container(
-                              width: screenwidth * 0.45,
-                              height: screenheigh * 0.07,
-                              decoration: BoxDecoration(
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black38,
-                                    blurRadius: 25,
-                                  ),
-                                ],
-                              ),
-                              child: RaisedButton(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(20.0),
-                                          bottomLeft: Radius.circular(20.0),
-                                          bottomRight: Radius.circular(20.0))),
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) =>
-                                          _buildPopupDialogdestinataire(
-                                              context),
-                                    );
-                                  },
-                                  color: Colors.white,
-                                  child: Padding(
-                                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: <Widget>[
-                                          Padding(
-                                            padding:
-                                                EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                            child: Icon(
-                                              Icons.backup,
-                                              color: blue,
-                                              size: 30,
-                                            ),
-                                          ),
-                                          Container(
-                                            padding:
-                                                EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                            child: Text('Destinataire',
-                                                style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize:
-                                                        ResponsiveFlutter.of(
-                                                                context)
-                                                            .fontSize(2.3),
-                                                    fontFamily: "Nunito",
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                          ),
-                                        ],
-                                      )))),
-                        ],
-                      ),
-                      SizedBox(
-                        height: screenheigh * 0.02,
-                      ),
-                      Container(
-                        height: screenheigh * 0.06,
-                        width: screenwidth * 0.6,
-                        child: RaisedButton(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(20.0),
-                                    bottomLeft: Radius.circular(20.0),
-                                    bottomRight: Radius.circular(20.0))),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ConfirmerCommande()),
-                              );
-                            },
-                            color: blue,
-                            child: Text("Commander",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: ResponsiveFlutter.of(context)
-                                        .fontSize(2.3),
+                                filled: true,
+                                fillColor: Colors.white,
+                                labelText: "Location expediteur",
+                                labelStyle: TextStyle(
+                                    color: Colors.black,
                                     fontFamily: "Nunito",
-                                    fontWeight: FontWeight.bold))),
-                      ),
-                    ],
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: ResponsiveFlutter.of(context)
+                                        .fontSize(2.5)),
+                                hintStyle: TextStyle(
+                                  color: grey,
+                                  fontSize:
+                                      ResponsiveFlutter.of(context).fontSize(2),
+                                  fontFamily: "Nunito",
+                                ),
+                                suffixIcon: Icon(
+                                  Icons.my_location_outlined,
+                                  color: blue,
+                                  size: 30,
+                                ),
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black38,
+                                  blurRadius: 25,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16.0, right: 16.0, bottom: 10),
+                          child: Container(
+                            child: TextFormField(
+                              onEditingComplete: () => node.unfocus(),
+                              textInputAction: TextInputAction.done,
+                              controller: locationdes,
+                              style: TextStyle(
+                                  color: blue,
+                                  fontSize:
+                                      ResponsiveFlutter.of(context).fontSize(2),
+                                  fontFamily: "Nunito",
+                                  fontWeight: FontWeight.bold),
+                              decoration: InputDecoration(
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.auto,
+                                focusColor: blue,
+                                border: UnderlineInputBorder(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(20.0),
+                                      bottomRight: Radius.circular(20.0),
+                                      bottomLeft: Radius.circular(20.0)),
+                                  borderSide: BorderSide(
+                                    width: 0,
+                                    style: BorderStyle.none,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                labelText: "Location destinataire",
+                                labelStyle: TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: "Nunito",
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: ResponsiveFlutter.of(context)
+                                        .fontSize(2.5)),
+                                hintStyle: TextStyle(
+                                  color: grey,
+                                  fontSize:
+                                      ResponsiveFlutter.of(context).fontSize(2),
+                                  fontFamily: "Nunito",
+                                ),
+                                suffixIcon: Icon(
+                                  Icons.location_on_outlined,
+                                  color: blue,
+                                  size: 30,
+                                ),
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black38,
+                                  blurRadius: 25,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Divider(
+                          color: blue,
+                          thickness: 3,
+                          endIndent: screenwidth * 0.2,
+                          indent: screenwidth * 0.2,
+                        ),
+                        SizedBox(
+                          height: screenheigh * 0.01,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Container(
+                                width: screenwidth * 0.45,
+                                height: screenheigh * 0.07,
+                                decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black38,
+                                      blurRadius: 25,
+                                    ),
+                                  ],
+                                ),
+                                child: RaisedButton(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(20.0),
+                                            bottomLeft: Radius.circular(20.0),
+                                            bottomRight:
+                                                Radius.circular(20.0))),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            _buildPopupDialog(context),
+                                      );
+                                    },
+                                    color: Colors.white,
+                                    child: Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: <Widget>[
+                                            Padding(
+                                              padding: EdgeInsets.fromLTRB(
+                                                  4, 0, 10, 0),
+                                              child: Icon(
+                                                Icons.backup,
+                                                color: blue,
+                                                size: 30,
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: EdgeInsets.fromLTRB(
+                                                  5, 0, 0, 0),
+                                              child: Text('Colis',
+                                                  style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize:
+                                                          ResponsiveFlutter.of(
+                                                                  context)
+                                                              .fontSize(2.3),
+                                                      fontFamily: "Nunito",
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ),
+                                          ],
+                                        )))),
+                            Container(
+                                width: screenwidth * 0.45,
+                                height: screenheigh * 0.07,
+                                decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black38,
+                                      blurRadius: 25,
+                                    ),
+                                  ],
+                                ),
+                                child: RaisedButton(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(20.0),
+                                            bottomLeft: Radius.circular(20.0),
+                                            bottomRight:
+                                                Radius.circular(20.0))),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            _buildPopupDialogdestinataire(
+                                                context),
+                                      );
+                                    },
+                                    color: Colors.white,
+                                    child: Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: <Widget>[
+                                            Padding(
+                                              padding: EdgeInsets.fromLTRB(
+                                                  0, 0, 0, 0),
+                                              child: Icon(
+                                                Icons.backup,
+                                                color: blue,
+                                                size: 30,
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: EdgeInsets.fromLTRB(
+                                                  5, 0, 0, 0),
+                                              child: Text('Destinataire',
+                                                  style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize:
+                                                          ResponsiveFlutter.of(
+                                                                  context)
+                                                              .fontSize(2.3),
+                                                      fontFamily: "Nunito",
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ),
+                                          ],
+                                        )))),
+                          ],
+                        ),
+                        SizedBox(
+                          height: screenheigh * 0.02,
+                        ),
+                        Container(
+                          height: screenheigh * 0.06,
+                          width: screenwidth * 0.6,
+                          child: RaisedButton(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(20.0),
+                                      bottomLeft: Radius.circular(20.0),
+                                      bottomRight: Radius.circular(20.0))),
+                              onPressed: () {
+                                print('Button Clicked.');
+                              },
+                              color: blue,
+                              child: Text("Commander",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: ResponsiveFlutter.of(context)
+                                          .fontSize(2.3),
+                                      fontFamily: "Nunito",
+                                      fontWeight: FontWeight.bold))),
+                        ),
+                      ],
+                    ),
                   )),
             )
           ],
@@ -362,179 +385,188 @@ class _HomePageState extends State<HomePage> {
     var screenwidth = MediaQuery.of(context).size.width;
     String selectedUser;
     List<String> _fragilite = ['Tres Fragile', 'Fragile', 'Solide'];
-    TextEditingController dimension = TextEditingController(text: "200 x 500");
-    TextEditingController poids = TextEditingController(text: "16 kg");
-    TextEditingController value = TextEditingController(text: "30000");
+    final node = FocusScope.of(context);
     return new AlertDialog(
-      content: new Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Align(
-            alignment: Alignment.topLeft,
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                size: 30,
-                color: blue,
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop();
-              },
-            ),
-          ),
-          Center(
-              child: Text('Veillez introduire les informations du colis',
-                  style: TextStyle(
-                      color: blue,
-                      fontSize: ResponsiveFlutter.of(context).fontSize(3),
-                      fontWeight: FontWeight.bold))),
-          SizedBox(
-            height: screenheigh * 0.02,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 0, left: 6.0, right: 6.0),
-            child: Container(
-              child: TextField(
-                controller: dimension,
-                style: TextStyle(
-                    color: grey2,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(2),
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold),
-                decoration: CommonSyles.textDecoration(
-                    context,
-                    "Dimensions(HxLxP)",
-                    Icon(
-                      IconsClass.cube_with_arrows,
-                      color: blue,
-                    )),
-              ),
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 25,
+      content: Container(
+        child: SingleChildScrollView(
+          child: new Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Align(
+                alignment: Alignment.topLeft,
+                child: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back,
+                    size: 30,
+                    color: blue,
                   ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
-            child: Container(
-              child: TextField(
-                controller: poids,
-                cursorColor: grey2,
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                    color: grey2,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(2),
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold),
-                decoration: CommonSyles.textDecoration(
-                    context,
-                    "poid",
-                    Icon(
-                      IconsClass.weight,
-                      color: blue,
-                    )),
-              ),
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 25,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
-            child: Container(
-              child: TextField(
-                controller: value,
-                cursorColor: grey2,
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                    color: grey2,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(1.5),
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold),
-                decoration: CommonSyles.textDecoration(
-                    context,
-                    "valeur ( DA )",
-                    Icon(
-                      IconsClass.price_tag,
-                      color: blue,
-                    )),
-              ),
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 25,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
-            child: Container(
-              child: DropdownButtonFormField<String>(
-                decoration:
-                    CommonSyles.textDecoration(context, "Fragilite", null),
-                value: selectedUser,
-                onChanged: (String Value) {
-                  setState(() {
-                    selectedUser = Value;
-                  });
-                },
-                items: _fragilite.map((location) {
-                  return DropdownMenuItem(
-                    child: new Text(location),
-                    value: location,
-                  );
-                }).toList(),
-              ),
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 25,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(
-            height: screenheigh * 0.02,
-          ),
-          Center(
-            child: Container(
-              height: screenheigh * 0.06,
-              width: screenwidth * 0.4,
-              child: RaisedButton(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20.0),
-                          bottomLeft: Radius.circular(20.0),
-                          bottomRight: Radius.circular(20.0))),
                   onPressed: () {
                     Navigator.of(context, rootNavigator: true).pop();
                   },
-                  color: blue,
-                  child: Text("Confirmer",
+                ),
+              ),
+              Center(
+                  child: Text('Veillez introduire les informations du colis',
                       style: TextStyle(
-                          color: Colors.white,
-                          fontSize: ResponsiveFlutter.of(context).fontSize(2),
-                          fontFamily: "Nunito",
+                          color: blue,
+                          fontSize: ResponsiveFlutter.of(context).fontSize(3),
                           fontWeight: FontWeight.bold))),
-            ),
+              SizedBox(
+                height: screenheigh * 0.02,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 0, left: 6.0, right: 6.0),
+                child: Container(
+                  child: TextFormField(
+                    onEditingComplete: () => node.nextFocus(),
+                    textInputAction: TextInputAction.next,
+                    controller: dimension,
+                    style: TextStyle(
+                        color: grey2,
+                        fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                        fontFamily: "Nunito",
+                        fontWeight: FontWeight.bold),
+                    decoration: CommonSyles.textDecoration(
+                        context,
+                        "Dimensions(HxLxP)",
+                        Icon(
+                          IconsClass.cube_with_arrows,
+                          color: blue,
+                        )),
+                  ),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black38,
+                        blurRadius: 25,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
+                child: Container(
+                  child: TextFormField(
+                    onEditingComplete: () => node.nextFocus(),
+                    textInputAction: TextInputAction.next,
+                    controller: poids,
+                    cursorColor: grey2,
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(
+                        color: grey2,
+                        fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                        fontFamily: "Nunito",
+                        fontWeight: FontWeight.bold),
+                    decoration: CommonSyles.textDecoration(
+                        context,
+                        "poid",
+                        Icon(
+                          IconsClass.weight,
+                          color: blue,
+                        )),
+                  ),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black38,
+                        blurRadius: 25,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
+                child: Container(
+                  child: TextFormField(
+                    onEditingComplete: () => node.unfocus(),
+                    textInputAction: TextInputAction.done,
+                    controller: value,
+                    cursorColor: grey2,
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(
+                        color: grey2,
+                        fontSize: ResponsiveFlutter.of(context).fontSize(1.5),
+                        fontFamily: "Nunito",
+                        fontWeight: FontWeight.bold),
+                    decoration: CommonSyles.textDecoration(
+                        context,
+                        "valeur ( DA )",
+                        Icon(
+                          IconsClass.price_tag,
+                          color: blue,
+                        )),
+                  ),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black38,
+                        blurRadius: 25,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
+                child: Container(
+                  child: DropdownButtonFormField<String>(
+                    decoration:
+                        CommonSyles.textDecoration(context, "Fragilite", null),
+                    value: selectedUser,
+                    onChanged: (String value) {
+                      setState(() {
+                        selectedUser = value;
+                      });
+                    },
+                    items: _fragilite.map((location) {
+                      return DropdownMenuItem(
+                        child: new Text(location),
+                        value: location,
+                      );
+                    }).toList(),
+                  ),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black38,
+                        blurRadius: 25,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: screenheigh * 0.02,
+              ),
+              Center(
+                child: Container(
+                  height: screenheigh * 0.06,
+                  width: screenwidth * 0.4,
+                  child: RaisedButton(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(20.0),
+                              bottomLeft: Radius.circular(20.0),
+                              bottomRight: Radius.circular(20.0))),
+                      onPressed: () {
+                        Navigator.of(context, rootNavigator: true).pop();
+                      },
+                      color: blue,
+                      child: Text("Confirmer",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize:
+                                  ResponsiveFlutter.of(context).fontSize(2),
+                              fontFamily: "Nunito",
+                              fontWeight: FontWeight.bold))),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -542,149 +574,157 @@ class _HomePageState extends State<HomePage> {
   Widget _buildPopupDialogdestinataire(BuildContext context) {
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
-    TextEditingController nom = TextEditingController();
-    TextEditingController prenom = TextEditingController();
-    TextEditingController telephone = TextEditingController();
+    final node = FocusScope.of(context);
+
     return new AlertDialog(
-      content: new Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Align(
-            alignment: Alignment.topLeft,
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                size: 30,
-                color: blue,
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop();
-              },
-            ),
-          ),
-          Center(
-              child: Text('Veillez introduire les informations du destinataire',
-                  style: TextStyle(
-                      color: blue,
-                      fontSize: ResponsiveFlutter.of(context).fontSize(3),
-                      fontWeight: FontWeight.bold))),
-          SizedBox(
-            height: screenheigh * 0.02,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 0, left: 6.0, right: 6.0),
-            child: Container(
-              child: TextField(
-                controller: nom,
-                style: TextStyle(
-                    color: grey2,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(2),
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold),
-                decoration: CommonSyles.textDecoration(
-                    context,
-                    "Nom",
-                    Icon(
-                      Icons.account_box,
-                      color: blue,
-                    )),
-              ),
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 25,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
-            child: Container(
-              child: TextField(
-                controller: prenom,
-                cursorColor: grey2,
-                style: TextStyle(
-                    color: grey2,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(2),
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold),
-                decoration: CommonSyles.textDecoration(
-                    context,
-                    "Prenom",
-                    Icon(
-                      Icons.account_box,
-                      color: blue,
-                    )),
-              ),
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 25,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
-            child: Container(
-              child: TextField(
-                controller: telephone,
-                cursorColor: grey2,
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                    color: grey2,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(1.5),
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold),
-                decoration: CommonSyles.textDecoration(
-                    context,
-                    "Telephone",
-                    Icon(
-                      Icons.phone,
-                      color: blue,
-                    )),
-              ),
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 25,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(
-            height: screenheigh * 0.02,
-          ),
-          Center(
-            child: Container(
-              height: screenheigh * 0.06,
-              width: screenwidth * 0.4,
-              child: RaisedButton(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20.0),
-                          bottomLeft: Radius.circular(20.0),
-                          bottomRight: Radius.circular(20.0))),
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pop();
-                  },
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_back,
+                  size: 30,
                   color: blue,
-                  child: Text("Confirmer",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: ResponsiveFlutter.of(context).fontSize(2),
-                          fontFamily: "Nunito",
-                          fontWeight: FontWeight.bold))),
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                },
+              ),
             ),
-          ),
-        ],
+            Center(
+                child: Text(
+                    'Veillez introduire les informations du destinataire',
+                    style: TextStyle(
+                        color: blue,
+                        fontSize: ResponsiveFlutter.of(context).fontSize(3),
+                        fontWeight: FontWeight.bold))),
+            SizedBox(
+              height: screenheigh * 0.02,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 0, left: 6.0, right: 6.0),
+              child: Container(
+                child: TextFormField(
+                  onEditingComplete: () => node.nextFocus(),
+                  textInputAction: TextInputAction.next,
+                  controller: nom,
+                  style: TextStyle(
+                      color: grey2,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold),
+                  decoration: CommonSyles.textDecoration(
+                      context,
+                      "Nom",
+                      Icon(
+                        Icons.account_box,
+                        color: blue,
+                      )),
+                ),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black38,
+                      blurRadius: 25,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
+              child: Container(
+                child: TextFormField(
+                  onEditingComplete: () => node.nextFocus(),
+                  textInputAction: TextInputAction.next,
+                  controller: prenom,
+                  cursorColor: grey2,
+                  style: TextStyle(
+                      color: grey2,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold),
+                  decoration: CommonSyles.textDecoration(
+                      context,
+                      "Prenom",
+                      Icon(
+                        Icons.account_box,
+                        color: blue,
+                      )),
+                ),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black38,
+                      blurRadius: 25,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
+              child: Container(
+                child: TextFormField(
+                  onEditingComplete: () => node.unfocus(),
+                  textInputAction: TextInputAction.done,
+                  controller: telephone,
+                  cursorColor: grey2,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                      color: grey2,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(1.5),
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold),
+                  decoration: CommonSyles.textDecoration(
+                      context,
+                      "Telephone",
+                      Icon(
+                        Icons.phone,
+                        color: blue,
+                      )),
+                ),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black38,
+                      blurRadius: 25,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(
+              height: screenheigh * 0.02,
+            ),
+            Center(
+              child: Container(
+                height: screenheigh * 0.06,
+                width: screenwidth * 0.4,
+                child: RaisedButton(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20.0),
+                            bottomLeft: Radius.circular(20.0),
+                            bottomRight: Radius.circular(20.0))),
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                    },
+                    color: blue,
+                    child: Text("Confirmer",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                            fontFamily: "Nunito",
+                            fontWeight: FontWeight.bold))),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -692,7 +732,7 @@ class _HomePageState extends State<HomePage> {
 
 class NavDrawer extends StatelessWidget {
   final Color violet = Color(0xFF382B8C);
-  Color blue = Color(0xFF382B8C);
+  final Color blue = Color(0xFF382B8C);
   @override
   Widget build(BuildContext context) {
     var screenheigh = MediaQuery.of(context).size.height;
@@ -734,84 +774,96 @@ class NavDrawer extends StatelessWidget {
             ),
           ),
           SizedBox(height: screenheigh * 0.04),
-          ListTile(
-            leading: Icon(
-              Icons.account_circle,
-              color: blue,
-              size: 45,
-            ),
-            title: Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Profile',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+          FlatButton(
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => ProfilePage())),
+            child: ListTile(
+              leading: Icon(
+                Icons.account_circle_outlined,
+                color: blue,
+                size: 45,
+              ),
+              title: Container(
+                margin: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Profile',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+                ),
               ),
             ),
-            onTap: () => {Navigator.of(context).pop()},
           ),
           SizedBox(height: screenheigh * 0.02),
-          ListTile(
-            leading: Icon(
-              Icons.history,
-              color: blue,
-              size: 45,
-            ),
-            title: Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Historique',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+          FlatButton(
+            onPressed: () => Navigator.push(
+                context, MaterialPageRoute(builder: (context) => Historique())),
+            child: ListTile(
+              leading: Icon(
+                Icons.history,
+                color: blue,
+                size: 45,
+              ),
+              title: Container(
+                margin: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Historique',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+                ),
               ),
             ),
-            onTap: () => {Navigator.of(context).pop()},
           ),
           SizedBox(height: screenheigh * 0.02),
-          ListTile(
-            leading: Icon(
-              Icons.money_off_csred_rounded,
-              size: 45,
-              color: blue,
-            ),
-            title: Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Promotions',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+          FlatButton(
+            onPressed: () => Navigator.push(
+                context, MaterialPageRoute(builder: (context) => Promotion())),
+            child: ListTile(
+              leading: Icon(
+                IconsClass.price_tag,
+                size: 45,
+                color: blue,
+              ),
+              title: Container(
+                margin: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Promotions',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+                ),
               ),
             ),
-            onTap: () => {Navigator.of(context).pop()},
           ),
           SizedBox(height: screenheigh * 0.02),
-          ListTile(
-            leading: Icon(
-              Icons.group_rounded,
-              size: 45,
-              color: blue,
-            ),
-            title: Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              child: Text(
-                'Parrainage',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
-                    fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+          FlatButton(
+            onPressed: () => Navigator.push(
+                context, MaterialPageRoute(builder: (context) => Parrainage())),
+            child: ListTile(
+              leading: Icon(
+                Icons.group_outlined,
+                size: 45,
+                color: blue,
+              ),
+              title: Container(
+                margin: const EdgeInsets.only(left: 20.0),
+                child: Text(
+                  'Parrainage',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveFlutter.of(context).fontSize(3)),
+                ),
               ),
             ),
-            onTap: () => {Navigator.of(context).pop()},
           ),
           SizedBox(height: screenheigh * 0.15),
           Center(

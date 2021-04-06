@@ -84,10 +84,10 @@ class _ParrainageState extends State<Parrainage> {
                 height: screenheigh * 0.02,
               ),
               Container(
-                height: screenheigh * 0.4,
+                height: screenheigh * 0.48,
                 width: screenwidth,
                 child: Image.asset(
-                  'assets/images/image1.jpg',
+                  'assets/images/image2.jpg',
                   fit: BoxFit.fill,
                 ),
               ),
@@ -116,7 +116,7 @@ class _ParrainageState extends State<Parrainage> {
                 ),
               ),
               SizedBox(
-                height: screenheigh * 0.03,
+                height: screenheigh * 0.02,
               ),
               Center(
                 child: Container(

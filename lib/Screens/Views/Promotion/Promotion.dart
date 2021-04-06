@@ -721,7 +721,7 @@ class _PromotionState extends State<Promotion> {
                                       bottomRight: Radius.circular(20.0))),
                               onPressed: () {},
                               color: violet,
-                              child: Text("Commander",
+                              child: Text("Appliquer",
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: ResponsiveFlutter.of(context)

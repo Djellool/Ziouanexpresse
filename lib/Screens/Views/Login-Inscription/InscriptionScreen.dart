@@ -313,7 +313,7 @@ class _InscriptionScreenState extends State<InscriptionScreen> {
               fontFamily: "Nunito",
               fontWeight: FontWeight.bold),
           decoration:
-              CommonSyles.textDecoration(context, "Numéro de téléphonse", null),
+              CommonSyles.textDecoration(context, "Numéro de téléphone", null),
         ),
         decoration: BoxDecoration(
           boxShadow: [

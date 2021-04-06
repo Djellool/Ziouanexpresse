@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
+import 'package:ziouanexpress/Screens/Views/Login-Inscription/LoginScreen.dart';
 import 'package:ziouanexpress/Screens/Views/Profile/ProfilePassword.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -295,7 +296,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   Icons.phone_in_talk_outlined, context, violet)),
           FlatButton(
               padding: EdgeInsets.all(0),
-              onPressed: null,
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()));
+              },
               child: CommonSyles.rows(
                   "Déconnexion", Icons.logout, context, orange)),
         ],

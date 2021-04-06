@@ -27,10 +27,9 @@ class _ProfilePasswordState extends State<ProfilePassword> {
 
   @override
   Widget build(BuildContext context) {
-    var node = FocusScope.of(context);
+    final node = FocusScope.of(context);
     return SafeArea(
       child: Scaffold(
-        key: _scaffoldkey,
         appBar: CommonSyles.appbar(context, "Mot de passe"),
         backgroundColor: white,
         body: ListView(
@@ -44,8 +43,137 @@ class _ProfilePasswordState extends State<ProfilePassword> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     text(context),
-                    passwordField(context, node),
-                    passwordConfField(context, node),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: 36.0, left: 16.0, right: 16.0, bottom: 16.0),
+                      child: Container(
+                        child: TextFormField(
+                          onEditingComplete: () => node.nextFocus(),
+                          textInputAction: TextInputAction.next,
+                          validator: (value) => validation(value),
+                          controller: passwordController,
+                          cursorColor: grey2,
+                          obscureText: Provider.of<GeneralProvider>(context)
+                              .profileVisibility,
+                          style: TextStyle(
+                              letterSpacing: 01,
+                              color: grey2,
+                              fontSize:
+                                  ResponsiveFlutter.of(context).fontSize(2),
+                              fontFamily: "Nunito",
+                              fontWeight: FontWeight.bold),
+                          decoration: InputDecoration(
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            focusColor: violet,
+                            border: UnderlineInputBorder(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(20.0),
+                                  bottomRight: Radius.circular(20.0),
+                                  bottomLeft: Radius.circular(20.0)),
+                              borderSide: BorderSide(
+                                width: 0,
+                                style: BorderStyle.none,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            labelText: "Mot de passe",
+                            labelStyle: TextStyle(
+                                color: Colors.black,
+                                fontFamily: "Nunito",
+                                fontWeight: FontWeight.bold,
+                                fontSize: ResponsiveFlutter.of(context)
+                                    .fontSize(2.5)),
+                            hintStyle: TextStyle(
+                              color: grey,
+                              fontSize:
+                                  ResponsiveFlutter.of(context).fontSize(2),
+                              fontFamily: "Nunito",
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                Provider.of<GeneralProvider>(context)
+                                        .profileVisibility
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: violet,
+                              ),
+                              onPressed: () {
+                                Provider.of<GeneralProvider>(context,
+                                        listen: false)
+                                    .changeProfileVisibility();
+                              },
+                            ),
+                          ),
+                        ),
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black38,
+                              blurRadius: 25,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: 18.0, left: 16.0, right: 16.0, bottom: 32.0),
+                      child: Container(
+                        child: TextFormField(
+                          onEditingComplete: () => node.previousFocus(),
+                          textInputAction: TextInputAction.done,
+                          validator: (value) => validation(value),
+                          controller: passwordConfController,
+                          cursorColor: grey2,
+                          obscureText: true,
+                          style: TextStyle(
+                              letterSpacing: 01,
+                              color: grey2,
+                              fontSize:
+                                  ResponsiveFlutter.of(context).fontSize(2),
+                              fontFamily: "Nunito",
+                              fontWeight: FontWeight.bold),
+                          decoration: InputDecoration(
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            focusColor: violet,
+                            border: UnderlineInputBorder(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(20.0),
+                                  bottomRight: Radius.circular(20.0),
+                                  bottomLeft: Radius.circular(20.0)),
+                              borderSide: BorderSide(
+                                width: 0,
+                                style: BorderStyle.none,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            labelText: "Confirmer le mot de passe",
+                            labelStyle: TextStyle(
+                                color: Colors.black,
+                                fontFamily: "Nunito",
+                                fontWeight: FontWeight.bold,
+                                fontSize: ResponsiveFlutter.of(context)
+                                    .fontSize(2.5)),
+                            hintStyle: TextStyle(
+                              color: grey,
+                              fontSize:
+                                  ResponsiveFlutter.of(context).fontSize(2),
+                              fontFamily: "Nunito",
+                            ),
+                          ),
+                        ),
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black38,
+                              blurRadius: 25,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     button(context, node)
                   ],
                 ),
@@ -70,135 +198,6 @@ class _ProfilePasswordState extends State<ProfilePassword> {
             fontFamily: "Nunito",
             fontSize: ResponsiveFlutter.of(context).fontSize(2.8),
             fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
-  Widget passwordField(BuildContext context, FocusNode node) {
-    return Padding(
-      padding: const EdgeInsets.only(
-          top: 36.0, left: 16.0, right: 16.0, bottom: 16.0),
-      child: Container(
-        child: TextFormField(
-          onEditingComplete: () => node.nextFocus(),
-          textInputAction: TextInputAction.next,
-          validator: (value) => validation(value),
-          controller: passwordController,
-          cursorColor: grey2,
-          obscureText: Provider.of<GeneralProvider>(context).profileVisibility,
-          style: TextStyle(
-              letterSpacing: 01,
-              color: grey2,
-              fontSize: ResponsiveFlutter.of(context).fontSize(2),
-              fontFamily: "Nunito",
-              fontWeight: FontWeight.bold),
-          decoration: InputDecoration(
-            floatingLabelBehavior: FloatingLabelBehavior.auto,
-            focusColor: violet,
-            border: UnderlineInputBorder(
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20.0),
-                  bottomRight: Radius.circular(20.0),
-                  bottomLeft: Radius.circular(20.0)),
-              borderSide: BorderSide(
-                width: 0,
-                style: BorderStyle.none,
-              ),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            labelText: "Mot de passe",
-            labelStyle: TextStyle(
-                color: Colors.black,
-                fontFamily: "Nunito",
-                fontWeight: FontWeight.bold,
-                fontSize: ResponsiveFlutter.of(context).fontSize(2.5)),
-            hintStyle: TextStyle(
-              color: grey,
-              fontSize: ResponsiveFlutter.of(context).fontSize(2),
-              fontFamily: "Nunito",
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                Provider.of<GeneralProvider>(context).profileVisibility
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: violet,
-              ),
-              onPressed: () {
-                node.unfocus();
-                Provider.of<GeneralProvider>(context, listen: false)
-                    .changeProfileVisibility();
-              },
-            ),
-          ),
-        ),
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black38,
-              blurRadius: 25,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget passwordConfField(BuildContext context, FocusNode node) {
-    return Padding(
-      padding: const EdgeInsets.only(
-          top: 18.0, left: 16.0, right: 16.0, bottom: 32.0),
-      child: Container(
-        child: TextFormField(
-          onEditingComplete: () => node.previousFocus(),
-          textInputAction: TextInputAction.done,
-          validator: (value) => validation(value),
-          controller: passwordConfController,
-          cursorColor: grey2,
-          obscureText: true,
-          style: TextStyle(
-              letterSpacing: 01,
-              color: grey2,
-              fontSize: ResponsiveFlutter.of(context).fontSize(2),
-              fontFamily: "Nunito",
-              fontWeight: FontWeight.bold),
-          decoration: InputDecoration(
-            floatingLabelBehavior: FloatingLabelBehavior.auto,
-            focusColor: violet,
-            border: UnderlineInputBorder(
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20.0),
-                  bottomRight: Radius.circular(20.0),
-                  bottomLeft: Radius.circular(20.0)),
-              borderSide: BorderSide(
-                width: 0,
-                style: BorderStyle.none,
-              ),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            labelText: "Confirmer le mot de passe",
-            labelStyle: TextStyle(
-                color: Colors.black,
-                fontFamily: "Nunito",
-                fontWeight: FontWeight.bold,
-                fontSize: ResponsiveFlutter.of(context).fontSize(2.5)),
-            hintStyle: TextStyle(
-              color: grey,
-              fontSize: ResponsiveFlutter.of(context).fontSize(2),
-              fontFamily: "Nunito",
-            ),
-          ),
-        ),
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black38,
-              blurRadius: 25,
-            ),
-          ],
-        ),
       ),
     );
   }

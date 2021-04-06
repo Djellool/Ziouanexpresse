@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
+import 'package:ziouanexpress/Screens/Views/Home/HomePage.dart';
 import 'package:ziouanexpress/Screens/Views/Login-Inscription/ForgottenPassword.dart';
 import 'package:ziouanexpress/Screens/Views/Login-Inscription/InscriptionScreen.dart';
 
@@ -130,8 +131,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: ResponsiveFlutter.of(context).fontSize(2),
                             fontFamily: "Nunito",
                             fontWeight: FontWeight.bold),
-                        decoration:
-                            CommonSyles.textDecoration(context, "poids", null),
+                        decoration: CommonSyles.textDecoration(
+                            context, "Numero de telephone", null),
                       ),
                       decoration: BoxDecoration(
                         boxShadow: [
@@ -225,7 +226,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           bottomRight: Radius.circular(20)),
                     ),
                     child: FlatButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => HomePage()));
+                      },
                       child: Text(
                         "Connexion",
                         style: TextStyle(
@@ -295,7 +301,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String validation(String value) {
     if (value.length == 0) {
-      return "Veuillez entrer une valeur !";
+      return "Veuillez introduire une valeur !";
     }
     return null;
   }

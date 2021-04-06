@@ -104,7 +104,7 @@ class _ForgottenPasswordScreenState extends State<ForgottenPasswordScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Text(
-                        "Veuillez entrer votre numéro de\ntéléphone pour la suite de l'opération",
+                        "Veuillez introduire votre numéro de\ntéléphone pour la suite de l'opération",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: violet,
