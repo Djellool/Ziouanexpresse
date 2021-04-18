@@ -1,9 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:ziouanexpress/Models/DirectionDetails.dart';
+import 'package:ziouanexpress/Provider/commande.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Screens/Components/icons_class.dart';
+import 'package:location/location.dart';
+import 'package:ziouanexpress/Services/Maps.dart';
 
 class ConfirmerCommande extends StatefulWidget {
   @override
@@ -18,39 +25,161 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
   Color red = Color(0xFFFF3A32);
   Color orange = Color(0xFFF28322);
   Color blue = Color(0xFF382B8C);
-  Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _controller;
+  Location _location = Location();
 
-  static const LatLng _center = const LatLng(45.521563, -122.677433);
+  List<LatLng> pLineCoordinates = [];
+  Set<Polyline> polylineSet = {};
 
-  // This widget is the root of your application.
-  void _onMapCreated(GoogleMapController controller) {
-    _controller.complete(controller);
+  Set<Marker> markersSet = {};
+  Set<Circle> circlesSet = {};
+
+  @override
+  void initState() {
+    super.initState();
   }
 
+  Future<void> _onMapCreated(GoogleMapController _cntlr) async {
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+    LocationData _locationData;
+
+    _serviceEnabled = await _location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await _location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await _location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await _location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+    _controller = _cntlr;
+    _locationData = await _location.getLocation();
+    LatLng latlngposition =
+        LatLng(_locationData.latitude, _locationData.longitude);
+    CameraPosition cameraposition =
+        new CameraPosition(target: latlngposition, zoom: 14);
+    _controller.animateCamera(CameraUpdate.newCameraPosition(cameraposition));
+    await createpolyline(_cntlr);
+  }
+
+  Future<void> createpolyline(GoogleMapController _cntlr) async {
+    var provider = Provider.of<CommandeProvider>(context, listen: false);
+
+    DirectionDetails directionDetails = await Maps.obtainPlaceDirectionsDetails(
+        context, provider.locationexp, provider.locationdes);
+    PolylinePoints polylinePoints = PolylinePoints();
+    List<PointLatLng> decodedPolyLinePointsResult =
+        polylinePoints.decodePolyline(directionDetails.encodedPoints);
+    print(decodedPolyLinePointsResult.first.toString());
+    pLineCoordinates.clear();
+    if (decodedPolyLinePointsResult.isNotEmpty) {
+      decodedPolyLinePointsResult.forEach((PointLatLng pointLatLng) {
+        pLineCoordinates
+            .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+      });
+    }
+    polylineSet.clear();
+    setState(() {
+      Polyline polyline = Polyline(
+          color: Colors.green,
+          polylineId: PolylineId("PolylineID"),
+          jointType: JointType.round,
+          points: pLineCoordinates,
+          width: 5,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          geodesic: true);
+      polylineSet.add(polyline);
+    });
+
+    this.adjustcamera(_cntlr);
+
+    Marker pickUpLocMarker = Marker(
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        position: pLineCoordinates.first,
+        markerId: MarkerId("expediteur"));
+
+    Marker dropOffLocMarker = Marker(
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        position: pLineCoordinates.last,
+        markerId: MarkerId("destinataire"));
+
+    setState(() {
+      markersSet.add(pickUpLocMarker);
+      markersSet.add(dropOffLocMarker);
+    });
+    return markersSet;
+  }
+
+  void adjustcamera(GoogleMapController _cntlr) {
+    LatLngBounds latLngBoundst;
+    if (pLineCoordinates.first.latitude > pLineCoordinates.last.latitude &&
+        pLineCoordinates.first.longitude > pLineCoordinates.last.longitude) {
+      latLngBoundst = LatLngBounds(
+          southwest: pLineCoordinates.last, northeast: pLineCoordinates.first);
+    } else if (pLineCoordinates.first.longitude >
+        pLineCoordinates.last.longitude) {
+      latLngBoundst = LatLngBounds(
+          southwest: LatLng(
+              pLineCoordinates.first.latitude, pLineCoordinates.last.longitude),
+          northeast: LatLng(pLineCoordinates.last.latitude,
+              pLineCoordinates.first.longitude));
+    } else if (pLineCoordinates.first.latitude >
+        pLineCoordinates.last.latitude) {
+      latLngBoundst = LatLngBounds(
+          southwest: LatLng(
+              pLineCoordinates.last.latitude, pLineCoordinates.first.longitude),
+          northeast: LatLng(pLineCoordinates.first.latitude,
+              pLineCoordinates.last.longitude));
+    } else {
+      latLngBoundst = LatLngBounds(
+          southwest: pLineCoordinates.first, northeast: pLineCoordinates.last);
+    }
+    _controller = _cntlr;
+    _controller.animateCamera(CameraUpdate.newLatLngBounds(latLngBoundst, 40));
+  }
+
+  LatLng _initialcameraposition = LatLng(36.7525, 3.04197);
   @override
   Widget build(BuildContext context) {
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
+    var provider = Provider.of<CommandeProvider>(context);
     TextEditingController locationexp =
-        TextEditingController(text: "El Herrach");
+        TextEditingController(text: provider.locationexp);
     TextEditingController locationdes =
-        TextEditingController(text: "Ain naadja");
-    TextEditingController dimension = TextEditingController(text: "400 x 600");
+        TextEditingController(text: provider.locationdes);
+    TextEditingController dimension =
+        TextEditingController(text: "Moyenne Taille");
     TextEditingController poids = TextEditingController(text: "12.5 kg");
     TextEditingController valeur = TextEditingController(text: "15000");
     TextEditingController fragilite = TextEditingController(text: "Solide");
-    TextEditingController nom = TextEditingController(text: "Yessad");
-    TextEditingController prenom = TextEditingController(text: "Samy");
+    TextEditingController destinataire =
+        TextEditingController(text: "Yessad Samy");
     TextEditingController telephone = TextEditingController(text: "0561403441");
     return SafeArea(
       child: Scaffold(
         body: Stack(
           children: <Widget>[
-            GoogleMap(
-              onMapCreated: _onMapCreated,
-              initialCameraPosition: CameraPosition(
-                target: _center,
-                zoom: 11.0,
+            Container(
+              height: screenheigh * 0.4,
+              child: GoogleMap(
+                initialCameraPosition:
+                    CameraPosition(target: _initialcameraposition),
+                mapType: MapType.normal,
+                onMapCreated: _onMapCreated,
+                zoomGesturesEnabled: false,
+                scrollGesturesEnabled: false,
+                zoomControlsEnabled: false,
+                polylines: polylineSet,
+                markers: markersSet,
               ),
             ),
             Padding(
@@ -67,9 +196,9 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
               ),
             ),
             Positioned(
-                top: screenheigh * 0.2,
+                top: screenheigh * 0.4,
                 child: Container(
-                  height: screenheigh * 0.8,
+                  height: screenheigh * 0.6,
                   width: screenwidth,
                   child: MaterialApp(
                     home: DefaultTabController(
@@ -102,7 +231,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                             ],
                           ),
                           Expanded(
-                            flex: 3,
+                            flex: 4,
                             child: TabBarView(
                               children: [
                                 Container(
@@ -214,157 +343,164 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                       )
                                     ],
                                   ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 16.0,
-                                          right: 16.0,
-                                        ),
-                                        child: Container(
-                                          child: TextField(
-                                              controller: dimension,
-                                              readOnly: true,
-                                              style: TextStyle(
-                                                  color: blue,
-                                                  fontSize:
-                                                      ResponsiveFlutter.of(
-                                                              context)
-                                                          .fontSize(2),
-                                                  fontFamily: "Nunito",
-                                                  fontWeight: FontWeight.bold),
-                                              decoration:
-                                                  CommonSyles.textDecoration(
-                                                      context,
-                                                      "Dimensions ( HxL )",
-                                                      Icon(
-                                                        IconsClass
-                                                            .cube_with_arrows,
-                                                        color: blue,
-                                                        size: 35,
-                                                      ))),
-                                          decoration: BoxDecoration(
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black38,
-                                                blurRadius: 25,
-                                              ),
-                                            ],
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 8,
+                                              left: 16.0,
+                                              right: 16.0,
+                                              bottom: 13),
+                                          child: Container(
+                                            child: TextField(
+                                                controller: dimension,
+                                                readOnly: true,
+                                                style: TextStyle(
+                                                    color: blue,
+                                                    fontSize:
+                                                        ResponsiveFlutter.of(
+                                                                context)
+                                                            .fontSize(2),
+                                                    fontFamily: "Nunito",
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                decoration:
+                                                    CommonSyles.textDecoration(
+                                                        context,
+                                                        "Dimensions ( HxL )",
+                                                        Icon(
+                                                          IconsClass
+                                                              .cube_with_arrows,
+                                                          color: blue,
+                                                          size: 35,
+                                                        ))),
+                                            decoration: BoxDecoration(
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black38,
+                                                  blurRadius: 25,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 16.0,
-                                            right: 16.0,
-                                            bottom: 10),
-                                        child: Container(
-                                          child: TextField(
-                                              controller: poids,
-                                              readOnly: true,
-                                              style: TextStyle(
-                                                  color: blue,
-                                                  fontSize:
-                                                      ResponsiveFlutter.of(
-                                                              context)
-                                                          .fontSize(2),
-                                                  fontFamily: "Nunito",
-                                                  fontWeight: FontWeight.bold),
-                                              decoration:
-                                                  CommonSyles.textDecoration(
-                                                      context,
-                                                      "Poids",
-                                                      Icon(
-                                                        IconsClass.weight,
-                                                        color: blue,
-                                                        size: 30,
-                                                      ))),
-                                          decoration: BoxDecoration(
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black38,
-                                                blurRadius: 25,
-                                              ),
-                                            ],
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 16.0,
+                                              right: 16.0,
+                                              bottom: 10),
+                                          child: Container(
+                                            child: TextField(
+                                                controller: poids,
+                                                readOnly: true,
+                                                style: TextStyle(
+                                                    color: blue,
+                                                    fontSize:
+                                                        ResponsiveFlutter.of(
+                                                                context)
+                                                            .fontSize(2),
+                                                    fontFamily: "Nunito",
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                decoration:
+                                                    CommonSyles.textDecoration(
+                                                        context,
+                                                        "Poids",
+                                                        Icon(
+                                                          IconsClass.weight,
+                                                          color: blue,
+                                                          size: 30,
+                                                        ))),
+                                            decoration: BoxDecoration(
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black38,
+                                                  blurRadius: 25,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 16.0,
-                                            right: 16.0,
-                                            bottom: 10),
-                                        child: Container(
-                                          child: TextField(
-                                              controller: valeur,
-                                              readOnly: true,
-                                              style: TextStyle(
-                                                  color: blue,
-                                                  fontSize:
-                                                      ResponsiveFlutter.of(
-                                                              context)
-                                                          .fontSize(2),
-                                                  fontFamily: "Nunito",
-                                                  fontWeight: FontWeight.bold),
-                                              decoration:
-                                                  CommonSyles.textDecoration(
-                                                      context,
-                                                      "Valeur",
-                                                      Icon(
-                                                        IconsClass.price_tag,
-                                                        color: blue,
-                                                        size: 30,
-                                                      ))),
-                                          decoration: BoxDecoration(
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black38,
-                                                blurRadius: 25,
-                                              ),
-                                            ],
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 16.0,
+                                              right: 16.0,
+                                              bottom: 10),
+                                          child: Container(
+                                            child: TextField(
+                                                controller: valeur,
+                                                readOnly: true,
+                                                style: TextStyle(
+                                                    color: blue,
+                                                    fontSize:
+                                                        ResponsiveFlutter.of(
+                                                                context)
+                                                            .fontSize(2),
+                                                    fontFamily: "Nunito",
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                decoration:
+                                                    CommonSyles.textDecoration(
+                                                        context,
+                                                        "Valeur",
+                                                        Icon(
+                                                          IconsClass.price_tag,
+                                                          color: blue,
+                                                          size: 30,
+                                                        ))),
+                                            decoration: BoxDecoration(
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black38,
+                                                  blurRadius: 25,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 16.0,
-                                            right: 16.0,
-                                            bottom: 10),
-                                        child: Container(
-                                          child: TextField(
-                                              controller: fragilite,
-                                              readOnly: true,
-                                              style: TextStyle(
-                                                  color: blue,
-                                                  fontSize:
-                                                      ResponsiveFlutter.of(
-                                                              context)
-                                                          .fontSize(2),
-                                                  fontFamily: "Nunito",
-                                                  fontWeight: FontWeight.bold),
-                                              decoration:
-                                                  CommonSyles.textDecoration(
-                                                      context,
-                                                      "Fragilite",
-                                                      Icon(
-                                                        Icons
-                                                            .accessible_forward_rounded,
-                                                        color: blue,
-                                                        size: 30,
-                                                      ))),
-                                          decoration: BoxDecoration(
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black38,
-                                                blurRadius: 25,
-                                              ),
-                                            ],
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 16.0,
+                                              right: 16.0,
+                                              bottom: 10),
+                                          child: Container(
+                                            child: TextField(
+                                                controller: fragilite,
+                                                readOnly: true,
+                                                style: TextStyle(
+                                                    color: blue,
+                                                    fontSize:
+                                                        ResponsiveFlutter.of(
+                                                                context)
+                                                            .fontSize(2),
+                                                    fontFamily: "Nunito",
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                decoration:
+                                                    CommonSyles.textDecoration(
+                                                        context,
+                                                        "Fragilite",
+                                                        Icon(
+                                                          Icons
+                                                              .accessible_forward_rounded,
+                                                          color: blue,
+                                                          size: 30,
+                                                        ))),
+                                            decoration: BoxDecoration(
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black38,
+                                                  blurRadius: 25,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 Container(
@@ -388,48 +524,12 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.only(
-                                            left: 16.0,
-                                            right: 16.0,
-                                            bottom: 10),
-                                        child: Container(
-                                          child: TextField(
-                                              controller: nom,
-                                              readOnly: true,
-                                              style: TextStyle(
-                                                  color: blue,
-                                                  fontSize:
-                                                      ResponsiveFlutter.of(
-                                                              context)
-                                                          .fontSize(2),
-                                                  fontFamily: "Nunito",
-                                                  fontWeight: FontWeight.bold),
-                                              decoration:
-                                                  CommonSyles.textDecoration(
-                                                      context,
-                                                      "Nom",
-                                                      Icon(
-                                                        Icons.account_circle,
-                                                        color: blue,
-                                                        size: 30,
-                                                      ))),
-                                          decoration: BoxDecoration(
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black38,
-                                                blurRadius: 25,
-                                              ),
-                                            ],
-                                          ),
+                                          left: 16.0,
+                                          right: 16.0,
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 16.0,
-                                            right: 16.0,
-                                            bottom: 10),
                                         child: Container(
                                           child: TextField(
-                                              controller: prenom,
+                                              controller: destinataire,
                                               readOnly: true,
                                               style: TextStyle(
                                                   color: blue,
@@ -442,7 +542,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                               decoration:
                                                   CommonSyles.textDecoration(
                                                       context,
-                                                      "Prenom",
+                                                      "Destinataire",
                                                       Icon(
                                                         Icons.account_circle,
                                                         color: blue,
@@ -501,7 +601,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                             ),
                           ),
                           Expanded(
-                              flex: 2,
+                              flex: 3,
                               child: Column(
                                 children: [
                                   Center(
@@ -512,7 +612,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                             fontWeight: FontWeight.bold,
                                             fontSize:
                                                 ResponsiveFlutter.of(context)
-                                                    .fontSize(5),
+                                                    .fontSize(3),
                                             decoration:
                                                 TextDecoration.lineThrough)),
                                   ),
@@ -535,7 +635,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                         alignment: Alignment.centerRight,
                                         child: Padding(
                                           padding: const EdgeInsets.only(
-                                              right: 25, top: 14),
+                                              right: 25, top: 10),
                                           child: Text("-25%",
                                               style: TextStyle(
                                                 color: red,
@@ -543,14 +643,14 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: ResponsiveFlutter.of(
                                                         context)
-                                                    .fontSize(3.5),
+                                                    .fontSize(3),
                                               )),
                                         ),
                                       ),
                                     ],
                                   ),
                                   SizedBox(
-                                    height: screenheigh * 0.02,
+                                    height: screenheigh * 0.005,
                                   ),
                                   Container(
                                     height: ResponsiveFlutter.of(context).hp(7),

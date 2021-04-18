@@ -3,15 +3,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geocoder/geocoder.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:ziouanexpress/Provider/commande.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Screens/Components/icons_class.dart';
 import 'package:ziouanexpress/Screens/Views/Historique/Historique.dart';
+import 'package:ziouanexpress/Screens/Views/Home/ConfirmerCommande.dart';
 import 'package:ziouanexpress/Screens/Views/Parrainage/Parrainage.dart';
 import 'package:ziouanexpress/Screens/Views/Profile/Profile.dart';
 import 'package:ziouanexpress/Screens/Views/Promotion/Promotion.dart';
+import 'package:location/location.dart';
+import 'package:ziouanexpress/Screens/Views/Search/SearchScreen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -26,18 +32,45 @@ class _HomePageState extends State<HomePage> {
   Color red = Color(0xFFFF3A32);
   Color orange = Color(0xFFF28322);
   Color blue = Color(0xFF382B8C);
-  Completer<GoogleMapController> _controller = Completer();
+  Location _location = Location();
+  LatLng latlngposition;
+  var kGoogleApiKey = "AIzaSyC2GWz9vj6BWyIPMGyePxIQb4aqKOcJwz4";
 
-  static const LatLng _center = const LatLng(45.521563, -122.677433);
+  List<LatLng> pLineCoordinates = [];
+  Set<Polyline> polylineSet = {};
+
+  Set<Marker> markersSet = {};
+  Set<Circle> circlesSet = {};
+
+  GoogleMapController _controller;
 
   // This widget is the root of your application.
-  void _onMapCreated(GoogleMapController controller) {
-    _controller.complete(controller);
+  Future<void> _onMapCreated(GoogleMapController _cntlr) async {
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+    LocationData _locationData;
+
+    _serviceEnabled = await _location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await _location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await _location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await _location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+    _controller = _cntlr;
   }
 
-  TextEditingController dimension = TextEditingController(text: "200 x 500");
-  TextEditingController poids = TextEditingController(text: "16 kg");
-  TextEditingController value = TextEditingController(text: "30000");
+  TextEditingController dimension = TextEditingController();
+  TextEditingController poids = TextEditingController();
+  TextEditingController value = TextEditingController();
   TextEditingController locationexp = TextEditingController();
   TextEditingController locationdes = TextEditingController();
   TextEditingController nom = TextEditingController();
@@ -46,8 +79,14 @@ class _HomePageState extends State<HomePage> {
 
   final formKey = GlobalKey<FormState>();
   var scaffoldKey = GlobalKey<ScaffoldState>();
+  List<bool> _selections = [true, false];
+
   @override
   Widget build(BuildContext context) {
+    var provider = Provider.of<CommandeProvider>(context, listen: false);
+    locationexp.text = provider.locationexp;
+    locationdes.text = provider.locationdes;
+
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
     final node = FocusScope.of(context);
@@ -58,13 +97,32 @@ class _HomePageState extends State<HomePage> {
         drawer: NavDrawer(),
         body: Stack(
           children: <Widget>[
-            GoogleMap(
-              onMapCreated: _onMapCreated,
-              initialCameraPosition: CameraPosition(
-                target: _center,
-                zoom: 11.0,
-              ),
-            ),
+            FutureBuilder(
+                future: _location.getLocation(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final MarkerId markerId = MarkerId("443");
+                    var positionactuelle =
+                        LatLng(snapshot.data.latitude, snapshot.data.longitude);
+                    if (markers.isEmpty) {
+                      Marker marker = new Marker(
+                          markerId: markerId,
+                          position: LatLng(positionactuelle.latitude,
+                              positionactuelle.longitude));
+                      markers.clear();
+                      // adding a new marker to map
+                      markers[markerId] = marker.copyWith(
+                          positionParam: LatLng(positionactuelle.latitude,
+                              positionactuelle.longitude));
+                    }
+                    return _buildGoogleMap(context, positionactuelle);
+                  } else if (snapshot.hasError) {
+                    print(snapshot.error.toString());
+                    return Text("Erreur");
+                  }
+                  // By default, show a loading spinner.
+                  return Center(child: CircularProgressIndicator());
+                }),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Align(
@@ -75,6 +133,67 @@ class _HomePageState extends State<HomePage> {
                   },
                   backgroundColor: blue,
                   child: const Icon(Icons.list, size: 36.0),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: screenheigh * 0.44,
+              left: screenwidth * 0.05,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20)),
+                  color: Colors.white,
+                ),
+                child: ToggleButtons(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20)),
+                  selectedColor: Colors.white,
+                  fillColor: blue,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        child: Text(
+                          "Depart",
+                          style: TextStyle(
+                              fontSize:
+                                  ResponsiveFlutter.of(context).fontSize(2),
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        child: Text(
+                          "Arrive",
+                          style: TextStyle(
+                              fontSize:
+                                  ResponsiveFlutter.of(context).fontSize(2),
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                  onPressed: (int index) {
+                    setState(() {
+                      for (int buttonIndex = 0;
+                          buttonIndex < _selections.length;
+                          buttonIndex++) {
+                        if (buttonIndex == index) {
+                          _selections[buttonIndex] = true;
+                        } else {
+                          _selections[buttonIndex] = false;
+                        }
+                      }
+                    });
+                  },
+                  isSelected: _selections,
                 ),
               ),
             ),
@@ -96,12 +215,20 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(
-                              top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  ResponsiveFlutter.of(context).scale(15),
+                              vertical:
+                                  ResponsiveFlutter.of(context).scale(13)),
                           child: Container(
                             child: TextFormField(
-                              onEditingComplete: () => node.nextFocus(),
-                              textInputAction: TextInputAction.next,
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => SearchScreen()));
+                              },
+                              readOnly: true,
                               controller: locationexp,
                               style: TextStyle(
                                   color: blue,
@@ -156,12 +283,17 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(
-                              left: 16.0, right: 16.0, bottom: 10),
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  ResponsiveFlutter.of(context).scale(15),
+                              vertical: ResponsiveFlutter.of(context).scale(5)),
                           child: Container(
                             child: TextFormField(
-                              onEditingComplete: () => node.unfocus(),
-                              textInputAction: TextInputAction.done,
+                              readOnly: true,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => SearchScreen())),
                               controller: locationdes,
                               style: TextStyle(
                                   color: blue,
@@ -358,9 +490,11 @@ class _HomePageState extends State<HomePage> {
                                       topLeft: Radius.circular(20.0),
                                       bottomLeft: Radius.circular(20.0),
                                       bottomRight: Radius.circular(20.0))),
-                              onPressed: () {
-                                print('Button Clicked.');
-                              },
+                              onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          ConfirmerCommande())),
                               color: blue,
                               child: Text("Commander",
                                   style: TextStyle(
@@ -373,11 +507,72 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   )),
-            )
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+  getUserLocation() async {
+    markers.values.forEach((value) async {
+      var provider = Provider.of<CommandeProvider>(context, listen: false);
+      // From coordinates
+      final coordinates =
+          new Coordinates(value.position.latitude, value.position.longitude);
+      var addresses = await Geocoder.google(kGoogleApiKey)
+          .findAddressesFromCoordinates(coordinates);
+      if (_selections.first == true) {
+        provider.changelocationexp(addresses.first.featureName);
+        locationexp.text = addresses.first.featureName;
+      } else {
+        provider.changelocationdes(addresses.first.featureName);
+        locationdes.text = addresses.first.featureName;
+      }
+    });
+  }
+
+  Widget _buildGoogleMap(BuildContext context, LatLng locationactuelle) {
+    var screenheigh = MediaQuery.of(context).size.height;
+    return Container(
+      height: screenheigh * 0.56,
+      child: GoogleMap(
+        mapType: MapType.normal,
+        initialCameraPosition: CameraPosition(
+            target:
+                LatLng(locationactuelle.latitude, locationactuelle.longitude),
+            zoom: 13),
+        markers: Set<Marker>.of(markers.values),
+        onMapCreated: _onMapCreated,
+        myLocationEnabled: true,
+        myLocationButtonEnabled: true,
+        onCameraMove: ((_position) => _updatePosition(_position)),
+        onCameraIdle: onCameraIdle,
+      ),
+    );
+  }
+
+  void onCameraIdle() {
+    getUserLocation();
+  }
+
+  void _updatePosition(CameraPosition _position) {
+    final MarkerId markerId = MarkerId("443");
+    Position newMarkerPosition = Position(
+        latitude: _position.target.latitude,
+        longitude: _position.target.longitude);
+    Marker marker = new Marker(
+        markerId: markerId,
+        position:
+            LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude));
+    setState(() {
+      markers.clear();
+      // adding a new marker to map
+      markers[markerId] = marker.copyWith(
+          positionParam:
+              LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude));
+    });
   }
 
   Widget _buildPopupDialog(BuildContext context) {
@@ -385,6 +580,12 @@ class _HomePageState extends State<HomePage> {
     var screenwidth = MediaQuery.of(context).size.width;
     String selectedUser;
     List<String> _fragilite = ['Tres Fragile', 'Fragile', 'Solide'];
+    String selecteddimension;
+    List<String> _dimensions = [
+      'Petite Taille (1)',
+      'Moyenne Taille (2)',
+      'Grande Taille (3)',
+    ];
     final node = FocusScope.of(context);
     return new AlertDialog(
       content: Container(
@@ -402,7 +603,7 @@ class _HomePageState extends State<HomePage> {
                     color: blue,
                   ),
                   onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pop();
+                    Navigator.of(context).pop();
                   },
                 ),
               ),
@@ -416,34 +617,54 @@ class _HomePageState extends State<HomePage> {
                 height: screenheigh * 0.02,
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 0, left: 6.0, right: 6.0),
-                child: Container(
-                  child: TextFormField(
-                    onEditingComplete: () => node.nextFocus(),
-                    textInputAction: TextInputAction.next,
-                    controller: dimension,
-                    style: TextStyle(
-                        color: grey2,
-                        fontSize: ResponsiveFlutter.of(context).fontSize(2),
-                        fontFamily: "Nunito",
-                        fontWeight: FontWeight.bold),
-                    decoration: CommonSyles.textDecoration(
-                        context,
-                        "Dimensions(HxLxP)",
-                        Icon(
-                          IconsClass.cube_with_arrows,
-                          color: blue,
-                        )),
-                  ),
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black38,
-                        blurRadius: 25,
+                padding: const EdgeInsets.only(left: 6.0, right: 6.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: screenwidth * 0.51,
+                      child: DropdownButtonFormField<String>(
+                        decoration: CommonSyles.textDecoration(
+                            context, "Dimensions", null),
+                        value: selecteddimension,
+                        onChanged: (String value) {
+                          setState(() {
+                            selecteddimension = value;
+                          });
+                        },
+                        items: _dimensions.map((dimension) {
+                          return DropdownMenuItem(
+                            child: new Text(dimension),
+                            value: dimension,
+                          );
+                        }).toList(),
                       ),
-                    ],
-                  ),
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black38,
+                            blurRadius: 25,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                        icon: Icon(
+                          Icons.info_outline,
+                          color: blue,
+                        ),
+                        onPressed: null)
+                  ],
                 ),
+              ),
+              SizedBox(
+                height: screenheigh * 0.01,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 6.0, right: 6.0),
+                child: Container(
+                    child: Text(
+                        "(1) se transporte par moto*\n(2) se transporte par voiture*\n(3) se transporte par camion*")),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
@@ -461,7 +682,7 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.bold),
                     decoration: CommonSyles.textDecoration(
                         context,
-                        "poid",
+                        "poids",
                         Icon(
                           IconsClass.weight,
                           color: blue,
@@ -552,6 +773,11 @@ class _HomePageState extends State<HomePage> {
                               bottomLeft: Radius.circular(20.0),
                               bottomRight: Radius.circular(20.0))),
                       onPressed: () {
+                        var provider = Provider.of<CommandeProvider>(context,
+                            listen: false);
+                        print("Selected dimension : " + selecteddimension);
+                        provider.changedimension(selecteddimension);
+                        print(provider.dimension);
                         Navigator.of(context, rootNavigator: true).pop();
                       },
                       color: blue,
