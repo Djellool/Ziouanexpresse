@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
+import 'package:ziouanexpress/Services/ApiCalls.dart';
 
 class HistoriqueDetail extends StatelessWidget {
+  final int idLivraison;
+  HistoriqueDetail(this.idLivraison);
+
   final Color violet = Color(0xFF382B8C);
   final Color white = Colors.white;
   final Color grey = Color(0xFFC4C4C4);
@@ -14,23 +22,35 @@ class HistoriqueDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        appBar: CommonSyles.appbar(context, "Détails de livraison"),
-        body: Container(
-          width: ResponsiveFlutter.of(context).wp(100),
-          child: Column(children: [
-            avatar(context),
-            date(context),
-            ratingbar(context, 2),
-            cout(context, "540"),
-            destination(context, "Kouba", "Hydra")
-          ]),
-        ),
-      ),
+      child: FutureBuilder(
+          future: ApiCalls().getHistoriqueDetail(
+              Provider.of<AuthProvider>(context).token, this.idLivraison),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Scaffold(
+                appBar: CommonSyles.appbar(context, "Détails de livraison"),
+                body: Container(
+                  width: ResponsiveFlutter.of(context).wp(100),
+                  child: Column(children: [
+                    avatar(context, snapshot.data.nom + snapshot.data.prenom),
+                    date(context, snapshot.data.createdAt),
+                    ratingbar(context, snapshot.data.note),
+                    cout(context, snapshot.data.prix.toString()),
+                    destination(context, "A traiter", "A traiter")
+                  ]),
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(child: Text(snapshot.error.toString()));
+            }
+            return SpinKitFadingCube(
+              color: violet,
+            );
+          }),
     );
   }
 
-  Widget avatar(BuildContext context) {
+  Widget avatar(BuildContext context, String nomPrenom) {
     return Container(
       margin: EdgeInsets.only(top: ResponsiveFlutter.of(context).scale(20)),
       child: Column(
@@ -44,7 +64,7 @@ class HistoriqueDetail extends StatelessWidget {
                 backgroundImage: AssetImage("assets/images/avatar.png"),
               )),
           Text(
-            "Yessad Samy",
+            nomPrenom,
             textAlign: TextAlign.center,
             style: TextStyle(
                 color: violet,
@@ -57,12 +77,14 @@ class HistoriqueDetail extends StatelessWidget {
     );
   }
 
-  Widget date(BuildContext context) {
+  Widget date(BuildContext context, String date) {
     return Container(
       margin: EdgeInsets.symmetric(
           vertical: ResponsiveFlutter.of(context).scale(24)),
       child: Text(
-        "Mercredi 10-01-2021 à 11:32",
+        DateFormat.yMMMEd('fr').format(DateTime.parse(date)).toString() +
+            " à " +
+            DateFormat('HH:mm').format(DateTime.parse(date)),
         style: TextStyle(
             color: violet,
             fontFamily: "Nunito",
@@ -139,7 +161,6 @@ class HistoriqueDetail extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(top: ResponsiveFlutter.of(context).scale(16)),
       width: ResponsiveFlutter.of(context).wp(90),
-      height: ResponsiveFlutter.of(context).hp(19),
       padding: EdgeInsets.all(ResponsiveFlutter.of(context).scale(10)),
       decoration: BoxDecoration(
           color: white,

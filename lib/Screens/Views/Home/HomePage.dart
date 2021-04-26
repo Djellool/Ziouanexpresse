@@ -169,7 +169,6 @@ class _HomePageState extends State<HomePage> {
 
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
-    final node = FocusScope.of(context);
 
     return SafeArea(
       child: Scaffold(

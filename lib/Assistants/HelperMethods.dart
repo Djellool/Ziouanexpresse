@@ -24,7 +24,7 @@ class HelperMethods {
 
     Map<String, String> headerMap = {
       'Content-Type': 'application/json',
-      'Authorization': Serverkey,
+      'Authorization': serverkey,
     };
 
     Map notificationMap = {

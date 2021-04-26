@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:ziouanexpress/Assistants/requestAssistant.dart';
 import 'package:ziouanexpress/Models/DirectionDetails.dart';
 

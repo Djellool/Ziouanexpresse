@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 
 class CommonSyles {
@@ -28,7 +27,6 @@ class CommonSyles {
   }
 
   static containerDecoration(BuildContext context) {
-    final Color violet = Color(0xFF382B8C);
     return BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.only(

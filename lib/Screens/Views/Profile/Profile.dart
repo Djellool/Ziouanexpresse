@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
-import 'package:ziouanexpress/Screens/Views/Login-Inscription/LoginScreen.dart';
 import 'package:ziouanexpress/Screens/Views/Profile/ProfilePassword.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -33,11 +34,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   void initState() {
+    final provider = Provider.of<AuthProvider>(context, listen: false).client;
     super.initState();
-    _nomController = TextEditingController(text: "Yessad");
-    _prenomController = TextEditingController(text: "Samy");
-    _emailController = TextEditingController(text: "gs_yessad@gmail.com");
-    _phoneController = TextEditingController(text: "0557081936");
+    _nomController = TextEditingController(text: provider.nom);
+    _prenomController = TextEditingController(text: provider.prenom);
+    _emailController = TextEditingController(text: provider.email);
+    _phoneController = TextEditingController(text: provider.telephone);
   }
 
   bool changed = false;
@@ -59,7 +61,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final node = FocusScope.of(context);
-
     return SafeArea(
       child: Scaffold(
         key: _scaffoldkey,
@@ -81,8 +82,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         avatar(context),
                         namefield(context, node),
                         prenomfield(context, node),
-                        phonefield(context, node),
-                        emailfield(context, node),
+                        phonefield(
+                          context,
+                          node,
+                        ),
+                        emailfield(
+                          context,
+                          node,
+                        ),
                         button(context, node),
                       ],
                     ),
@@ -142,7 +149,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget prenomfield(BuildContext context, FocusNode node) {
+  Widget prenomfield(
+    BuildContext context,
+    FocusNode node,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
       child: Container(
@@ -203,7 +213,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget phonefield(BuildContext context, FocusNode node) {
+  Widget phonefield(
+    BuildContext context,
+    FocusNode node,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
       child: Container(
@@ -280,7 +293,7 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: EdgeInsets.all(0),
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ProfilePassword()));
+                    MaterialPageRoute(builder: (_) => ProfilePassword()));
               },
               child: CommonSyles.rows("Changer le mot de passe",
                   Icons.lock_open_rounded, context, violet)),
@@ -296,9 +309,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   Icons.phone_in_talk_outlined, context, violet)),
           FlatButton(
               padding: EdgeInsets.all(0),
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()));
+              onPressed: () async {
+                await Provider.of<AuthProvider>(context, listen: false)
+                    .logout();
+                Navigator.pop(context);
               },
               child: CommonSyles.rows(
                   "Déconnexion", Icons.logout, context, orange)),

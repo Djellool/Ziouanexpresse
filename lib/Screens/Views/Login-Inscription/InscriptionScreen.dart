@@ -1,5 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +20,6 @@ class _InscriptionScreenState extends State<InscriptionScreen> {
   final Color grey2 = Color(0xFF646464);
 
   final formKey = GlobalKey<FormState>();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   TextEditingController nameController = TextEditingController(text: "Yessad");
   TextEditingController prenomController = TextEditingController(text: "Samy");
   TextEditingController eMailController =
@@ -46,34 +43,6 @@ class _InscriptionScreenState extends State<InscriptionScreen> {
         .changePassword(password);
     Provider.of<InscriptionProvider>(context, listen: false)
         .changePasswordConf(passwordConf);
-  }
-
-  void registerUser() async {
-    final FirebaseUser user = (await _auth
-            .createUserWithEmailAndPassword(
-      email: eMailController.text,
-      password: passwordController.text,
-    )
-            .catchError((ex) {
-      //check error and display message
-      Navigator.pop(context);
-      PlatformException thisEx = ex;
-    }))
-        .user;
-    // check if user registration is successful
-    if (user != null) {
-      DatabaseReference newUserRef =
-          FirebaseDatabase.instance.reference().child('users/${user.uid}');
-
-      //Prepare data to be saved on users table
-      Map userMap = {
-        'fullname': nameController.text + prenomController.text,
-        'email': eMailController.text,
-        'phone': phoneController.text,
-      };
-
-      newUserRef.set(userMap);
-    }
   }
 
   @override
@@ -186,7 +155,6 @@ class _InscriptionScreenState extends State<InscriptionScreen> {
                     ),
                     child: FlatButton(
                       onPressed: () {
-                        registerUser();
                         if (formKey.currentState.validate()) {
                           changeInfoInscrit(
                               context,
