@@ -1,6 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
 import 'package:geocoder/geocoder.dart';
@@ -8,6 +8,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:ziouanexpress/Assistants/HelperMethods.dart';
+import 'package:ziouanexpress/Assistants/firehelper.dart';
+import 'package:ziouanexpress/Assistants/globalvariables.dart';
+import 'package:ziouanexpress/Models/Nearbydriver.dart';
 import 'package:ziouanexpress/Provider/commande.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Screens/Components/icons_class.dart';
@@ -16,6 +20,7 @@ import 'package:ziouanexpress/Screens/Views/Home/ConfirmerCommande.dart';
 import 'package:ziouanexpress/Screens/Views/Parrainage/Parrainage.dart';
 import 'package:ziouanexpress/Screens/Views/Profile/Profile.dart';
 import 'package:ziouanexpress/Screens/Views/Promotion/Promotion.dart';
+import 'dart:io';
 import 'package:location/location.dart';
 import 'package:ziouanexpress/Screens/Views/Search/SearchScreen.dart';
 
@@ -41,6 +46,8 @@ class _HomePageState extends State<HomePage> {
 
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
+  bool nearbyDriversKeysLoaded = false;
+  BitmapDescriptor nearbyIcon;
 
   GoogleMapController _controller;
 
@@ -48,7 +55,6 @@ class _HomePageState extends State<HomePage> {
   Future<void> _onMapCreated(GoogleMapController _cntlr) async {
     bool _serviceEnabled;
     PermissionStatus _permissionGranted;
-    LocationData _locationData;
 
     _serviceEnabled = await _location.serviceEnabled();
     if (!_serviceEnabled) {
@@ -66,6 +72,79 @@ class _HomePageState extends State<HomePage> {
       }
     }
     _controller = _cntlr;
+    print(currentPosition.latitude);
+    startGeofireListener(
+        LatLng(currentPosition.latitude, currentPosition.longitude));
+  }
+
+  void startGeofireListener(LatLng currentPosition) {
+    Geofire.initialize('driversAvailable');
+    Geofire.queryAtLocation(
+            currentPosition.latitude, currentPosition.longitude, 20)
+        .listen((map) {
+      if (map != null) {
+        var callBack = map['callBack'];
+
+        switch (callBack) {
+          case Geofire.onKeyEntered:
+            NearbyDriver nearbyDriver = NearbyDriver();
+            nearbyDriver.key = map['key'];
+            nearbyDriver.latitude = map['latitude'];
+            nearbyDriver.longitude = map['longitude'];
+            FireHelper.nearbyDriverList.add(nearbyDriver);
+
+            if (nearbyDriversKeysLoaded) {
+              updateDriversOnMap();
+            }
+            break;
+
+          case Geofire.onKeyExited:
+            FireHelper.removeFromList(map['key']);
+            updateDriversOnMap();
+            break;
+
+          case Geofire.onKeyMoved:
+            // Update your key's location
+
+            NearbyDriver nearbyDriver = NearbyDriver();
+            nearbyDriver.key = map['key'];
+            nearbyDriver.latitude = map['latitude'];
+            nearbyDriver.longitude = map['longitude'];
+
+            FireHelper.updateNearbyLocation(nearbyDriver);
+            updateDriversOnMap();
+            break;
+
+          case Geofire.onGeoQueryReady:
+            nearbyDriversKeysLoaded = true;
+            updateDriversOnMap();
+            break;
+        }
+      }
+    });
+  }
+
+  void updateDriversOnMap() {
+    setState(() {
+      markers.clear();
+    });
+
+    Set<Marker> tempMarkers = Set<Marker>();
+
+    for (NearbyDriver driver in FireHelper.nearbyDriverList) {
+      LatLng driverPosition = LatLng(driver.latitude, driver.longitude);
+      Marker thisMarker = Marker(
+        markerId: MarkerId('driver${driver.key}'),
+        position: driverPosition,
+        icon: nearbyIcon,
+        rotation: HelperMethods.generateRandomNumber(360),
+      );
+
+      tempMarkers.add(thisMarker);
+    }
+    setState(() {
+      markersSet = tempMarkers;
+    });
   }
 
   TextEditingController dimension = TextEditingController();
@@ -83,6 +162,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    createMarker();
     var provider = Provider.of<CommandeProvider>(context, listen: false);
     locationexp.text = provider.locationexp;
     locationdes.text = provider.locationdes;
@@ -102,6 +182,7 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final MarkerId markerId = MarkerId("443");
+                    currentPosition = snapshot.data;
                     var positionactuelle =
                         LatLng(snapshot.data.latitude, snapshot.data.longitude);
                     if (markers.isEmpty) {
@@ -516,7 +597,7 @@ class _HomePageState extends State<HomePage> {
 
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   getUserLocation() async {
-    markers.values.forEach((value) async {
+    markersSet.forEach((value) async {
       var provider = Provider.of<CommandeProvider>(context, listen: false);
       // From coordinates
       final coordinates =
@@ -543,7 +624,7 @@ class _HomePageState extends State<HomePage> {
             target:
                 LatLng(locationactuelle.latitude, locationactuelle.longitude),
             zoom: 13),
-        markers: Set<Marker>.of(markers.values),
+        markers: markersSet,
         onMapCreated: _onMapCreated,
         myLocationEnabled: true,
         myLocationButtonEnabled: true,
@@ -567,12 +648,26 @@ class _HomePageState extends State<HomePage> {
         position:
             LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude));
     setState(() {
-      markers.clear();
-      // adding a new marker to map
-      markers[markerId] = marker.copyWith(
+      markersSet.remove(markerId);
+      markersSet.add(marker.copyWith(
           positionParam:
-              LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude));
+              LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude)));
     });
+  }
+
+  void createMarker() {
+    if (nearbyIcon == null) {
+      ImageConfiguration imageConfiguration =
+          createLocalImageConfiguration(context, size: Size(1, 1));
+      BitmapDescriptor.fromAssetImage(
+              imageConfiguration,
+              (Platform.isIOS)
+                  ? 'assets/images/car_ios.png'
+                  : 'assets/images/car_android.png')
+          .then((icon) {
+        nearbyIcon = icon;
+      });
+    }
   }
 
   Widget _buildPopupDialog(BuildContext context) {

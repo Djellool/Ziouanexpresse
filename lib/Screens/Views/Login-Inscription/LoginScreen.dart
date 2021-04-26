@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
@@ -8,6 +11,8 @@ import 'package:ziouanexpress/Screens/Views/Login-Inscription/ForgottenPassword.
 import 'package:ziouanexpress/Screens/Views/Login-Inscription/InscriptionScreen.dart';
 
 class LoginScreen extends StatefulWidget {
+  LoginScreen({this.app});
+  final FirebaseApp app;
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -19,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final Color orange = Color(0xFFF28322);
   final Color blue = Color(0xFF382B8C);
   final Color grey2 = Color(0xFF646464);
+  final databaseRef = FirebaseDatabase.instance.reference();
 
   TextEditingController phoneController =
       TextEditingController(text: "0557081936");
@@ -226,12 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           bottomRight: Radius.circular(20)),
                     ),
                     child: FlatButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => HomePage()));
-                      },
+                      onPressed: () {},
                       child: Text(
                         "Connexion",
                         style: TextStyle(
