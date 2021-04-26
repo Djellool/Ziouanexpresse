@@ -233,18 +233,16 @@ class _SearchScreenState extends State<SearchScreen> {
                                   setState(() {
                                     if (champ == true) {
                                       locationexp.text =
-                                          placepPredictionList[index]
-                                                  .main_text +
+                                          placepPredictionList[index].mainText +
                                               " " +
                                               placepPredictionList[index]
-                                                  .secondary_text;
+                                                  .secondaryText;
                                     } else {
                                       locationdes.text =
-                                          placepPredictionList[index]
-                                                  .main_text +
+                                          placepPredictionList[index].mainText +
                                               " " +
                                               placepPredictionList[index]
-                                                  .secondary_text;
+                                                  .secondaryText;
                                     }
                                   });
                                   node.requestFocus();
@@ -294,17 +292,18 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
+// ignore: must_be_immutable
 class PredictionTile extends StatelessWidget {
   final PlacePredictions placePredictions;
   Color blue = Color(0xFF382B8C);
   PredictionTile({Key key, this.placePredictions}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    if (placePredictions.secondary_text == null) {
-      placePredictions.secondary_text = "";
+    if (placePredictions.secondaryText == null) {
+      placePredictions.secondaryText = "";
     }
-    if (placePredictions.main_text == null) {
-      placePredictions.main_text = "";
+    if (placePredictions.mainText == null) {
+      placePredictions.mainText = "";
     }
     return Container(
       child: Column(
@@ -323,7 +322,7 @@ class PredictionTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    placePredictions.main_text,
+                    placePredictions.mainText,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 16),
                   ),
@@ -331,7 +330,7 @@ class PredictionTile extends StatelessWidget {
                     height: 5,
                   ),
                   Text(
-                    placePredictions.secondary_text,
+                    placePredictions.secondaryText,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 12),
                   ),

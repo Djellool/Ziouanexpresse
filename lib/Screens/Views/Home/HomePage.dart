@@ -42,13 +42,10 @@ class _HomePageState extends State<HomePage> {
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
 
-  GoogleMapController _controller;
-
   // This widget is the root of your application.
   Future<void> _onMapCreated(GoogleMapController _cntlr) async {
     bool _serviceEnabled;
     PermissionStatus _permissionGranted;
-    LocationData _locationData;
 
     _serviceEnabled = await _location.serviceEnabled();
     if (!_serviceEnabled) {
@@ -65,7 +62,6 @@ class _HomePageState extends State<HomePage> {
         return;
       }
     }
-    _controller = _cntlr;
   }
 
   TextEditingController dimension = TextEditingController();
@@ -89,7 +85,6 @@ class _HomePageState extends State<HomePage> {
 
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
-    final node = FocusScope.of(context);
 
     return SafeArea(
       child: Scaffold(
@@ -523,12 +518,14 @@ class _HomePageState extends State<HomePage> {
           new Coordinates(value.position.latitude, value.position.longitude);
       var addresses = await Geocoder.google(kGoogleApiKey)
           .findAddressesFromCoordinates(coordinates);
-      if (_selections.first == true) {
-        provider.changelocationexp(addresses.first.featureName);
-        locationexp.text = addresses.first.featureName;
-      } else {
-        provider.changelocationdes(addresses.first.featureName);
-        locationdes.text = addresses.first.featureName;
+      if (addresses.isNotEmpty) {
+        if (_selections.first == true) {
+          provider.changelocationexp(addresses.first.featureName);
+          locationexp.text = addresses.first.featureName;
+        } else {
+          provider.changelocationdes(addresses.first.featureName);
+          locationdes.text = addresses.first.featureName;
+        }
       }
     });
   }

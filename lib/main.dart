@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Provider/InscriptionProvider.dart';
 import 'package:ziouanexpress/Provider/commande.dart';
-import 'package:ziouanexpress/Screens/Views/Historique/Historique.dart';
 import 'package:ziouanexpress/Screens/Views/Home/HomePage.dart';
 import 'package:ziouanexpress/Screens/Views/Login-Inscription/LoginScreen.dart';
-import 'package:ziouanexpress/Screens/Views/Parrainage/Parrainage.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
   runApp(MultiProvider(providers: [
@@ -19,8 +20,31 @@ void main() {
   ], child: ZeClient()));
 }
 
-class ZeClient extends StatelessWidget {
+class ZeClient extends StatefulWidget {
+  @override
+  _ZeClientState createState() => _ZeClientState();
+}
+
+class _ZeClientState extends State<ZeClient> {
   // This widget is the root of your application.
+  //
+
+  final storage = new FlutterSecureStorage();
+
+  Future<void> readToken() async {
+    String token = await storage.read(key: "token");
+    await Provider.of<AuthProvider>(context, listen: false)
+        .tryToken(context, token);
+    print("token : $token");
+  }
+
+  @override
+  void initState() {
+    initializeDateFormatting();
+    readToken();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -30,14 +54,19 @@ class ZeClient extends StatelessWidget {
             switch (auth.authenticated) {
               case "loggedout":
                 {
-                  return HomePage();
+                  return LoginScreen();
                 }
                 break;
+              case "loggedIN":
+                {
+                  return HomePage();
+                }
             }
             return Container();
           },
         )),
       ),
+      builder: EasyLoading.init(),
     );
   }
 }

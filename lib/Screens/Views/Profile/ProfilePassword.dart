@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
-import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 
 class ProfilePassword extends StatefulWidget {
@@ -30,6 +28,7 @@ class _ProfilePasswordState extends State<ProfilePassword> {
     final node = FocusScope.of(context);
     return SafeArea(
       child: Scaffold(
+        key: _scaffoldkey,
         appBar: CommonSyles.appbar(context, "Mot de passe"),
         backgroundColor: white,
         body: ListView(
@@ -53,8 +52,7 @@ class _ProfilePasswordState extends State<ProfilePassword> {
                           validator: (value) => validation(value),
                           controller: passwordController,
                           cursorColor: grey2,
-                          obscureText: Provider.of<GeneralProvider>(context)
-                              .profileVisibility,
+                          obscureText: true,
                           style: TextStyle(
                               letterSpacing: 01,
                               color: grey2,
@@ -90,20 +88,6 @@ class _ProfilePasswordState extends State<ProfilePassword> {
                                   ResponsiveFlutter.of(context).fontSize(2),
                               fontFamily: "Nunito",
                             ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                Provider.of<GeneralProvider>(context)
-                                        .profileVisibility
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: violet,
-                              ),
-                              onPressed: () {
-                                Provider.of<GeneralProvider>(context,
-                                        listen: false)
-                                    .changeProfileVisibility();
-                              },
-                            ),
                           ),
                         ),
                         decoration: BoxDecoration(
@@ -121,7 +105,7 @@ class _ProfilePasswordState extends State<ProfilePassword> {
                           top: 18.0, left: 16.0, right: 16.0, bottom: 32.0),
                       child: Container(
                         child: TextFormField(
-                          onEditingComplete: () => node.previousFocus(),
+                          onEditingComplete: () => node.unfocus(),
                           textInputAction: TextInputAction.done,
                           validator: (value) => validation(value),
                           controller: passwordConfController,
@@ -216,6 +200,7 @@ class _ProfilePasswordState extends State<ProfilePassword> {
       child: FlatButton(
         onPressed: () {
           node.unfocus();
+          if (_formKey.currentState.validate()) {}
         },
         child: Text(
           "Sauvegarder",
@@ -229,8 +214,8 @@ class _ProfilePasswordState extends State<ProfilePassword> {
   }
 
   String validation(String value) {
-    if (value.length == 0) {
-      return "Veuillez entrer une valeur !";
+    if (value.length == 0 || value.length < 8) {
+      return "Veuillez entrer une valeur valide !";
     }
     return null;
   }

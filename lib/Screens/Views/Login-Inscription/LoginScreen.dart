@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
-import 'package:ziouanexpress/Screens/Views/Home/HomePage.dart';
 import 'package:ziouanexpress/Screens/Views/Login-Inscription/ForgottenPassword.dart';
 import 'package:ziouanexpress/Screens/Views/Login-Inscription/InscriptionScreen.dart';
 
@@ -25,6 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController passwordController =
       TextEditingController(text: "password");
 
+  bool tried = false;
+
   @override
   void dispose() {
     super.dispose();
@@ -32,12 +35,12 @@ class _LoginScreenState extends State<LoginScreen> {
     passwordController.dispose();
   }
 
-  final GlobalKey formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     final node = FocusScope.of(context);
-
+    EasyLoading.init();
     return Scaffold(
       body: Container(
         child: SingleChildScrollView(
@@ -116,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: ResponsiveFlutter.of(context).fontSize(5))),
                   Padding(
                     padding: const EdgeInsets.only(
-                        top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
+                        top: 18.0, left: 16.0, right: 16.0, bottom: 8.0),
                     child: Container(
                       child: TextFormField(
                         onEditingComplete: () => node.nextFocus(),
@@ -146,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(
-                        top: 18.0, left: 16.0, right: 16.0, bottom: 16.0),
+                        left: 16.0, right: 16.0, bottom: 8.0),
                     child: Container(
                       child: TextFormField(
                         onEditingComplete: () => node.unfocus(),
@@ -215,6 +218,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: Center(
+                      child: Opacity(
+                        opacity: tried ? 1 : 0,
+                        child: Text(
+                          "Les informations introduites sont incorrectes",
+                          style: TextStyle(
+                              color: Colors.red,
+                              fontFamily: "Nunito",
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
                   Container(
                     height: ResponsiveFlutter.of(context).hp(8),
                     width: ResponsiveFlutter.of(context).wp(60),
@@ -226,11 +244,28 @@ class _LoginScreenState extends State<LoginScreen> {
                           bottomRight: Radius.circular(20)),
                     ),
                     child: FlatButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => HomePage()));
+                      onPressed: () async {
+                        if (formKey.currentState.validate()) {
+                          EasyLoading.show();
+                          Map map = {
+                            "telephone": phoneController.text,
+                            "password": passwordController.text,
+                            "device_name": "samsung"
+                          };
+                          var response = await Provider.of<AuthProvider>(
+                                  context,
+                                  listen: false)
+                              .login(context, map);
+                          EasyLoading.dismiss();
+                          setState(() {
+                            tried = false;
+                          });
+                          if (response == null) {
+                            setState(() {
+                              tried = true;
+                            });
+                          }
+                        }
                       },
                       child: Text(
                         "Connexion",
