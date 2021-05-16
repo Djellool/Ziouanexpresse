@@ -19,12 +19,8 @@ class Maps {
     if (res == "Failed") {
       return null;
     }
-    print("res = ");
-    print(res.toString());
-
     directiondetails.encodedPoints =
         res["routes"][0]["overview_polyline"]["points"];
-    print(directiondetails.encodedPoints);
 
     directiondetails.distanceText =
         res["routes"][0]["legs"][0]["distance"]["text"];

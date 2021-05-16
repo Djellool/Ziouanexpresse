@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
@@ -11,18 +12,23 @@ import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:ziouanexpress/Assistants/HelperMethods.dart';
 import 'package:ziouanexpress/Assistants/firehelper.dart';
 import 'package:ziouanexpress/Assistants/globalvariables.dart';
+import 'package:ziouanexpress/Models/DirectionDetails.dart';
 import 'package:ziouanexpress/Models/Nearbydriver.dart';
+import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/commande.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Screens/Components/icons_class.dart';
 import 'package:ziouanexpress/Screens/Views/Historique/Historique.dart';
-import 'package:ziouanexpress/Screens/Views/Home/ConfirmerCommande.dart';
 import 'package:ziouanexpress/Screens/Views/Parrainage/Parrainage.dart';
 import 'package:ziouanexpress/Screens/Views/Profile/Profile.dart';
 import 'package:ziouanexpress/Screens/Views/Promotion/Promotion.dart';
 import 'dart:io';
 import 'package:location/location.dart';
 import 'package:ziouanexpress/Screens/Views/Search/SearchScreen.dart';
+import 'package:ziouanexpress/Services/ApiCalls.dart';
+import 'package:ziouanexpress/Services/Maps.dart';
+
+import 'ConfirmerCommande.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -48,6 +54,10 @@ class _HomePageState extends State<HomePage> {
   Set<Circle> circlesSet = {};
   bool nearbyDriversKeysLoaded = false;
   BitmapDescriptor nearbyIcon;
+  List<NearbyDriver> availableDrivers;
+  String appState = 'NORMAL';
+  String selecteddimension;
+  String selectedUser;
 
   GoogleMapController _controller;
 
@@ -72,12 +82,12 @@ class _HomePageState extends State<HomePage> {
       }
     }
     _controller = _cntlr;
-    print(currentPosition.latitude);
     startGeofireListener(
         LatLng(currentPosition.latitude, currentPosition.longitude));
   }
 
   void startGeofireListener(LatLng currentPosition) {
+    print("Before length :" + FireHelper.nearbyDriverList.length.toString());
     Geofire.initialize('driversAvailable');
     Geofire.queryAtLocation(
             currentPosition.latitude, currentPosition.longitude, 20)
@@ -89,10 +99,15 @@ class _HomePageState extends State<HomePage> {
           case Geofire.onKeyEntered:
             NearbyDriver nearbyDriver = NearbyDriver();
             nearbyDriver.key = map['key'];
+            print("entered key = " + nearbyDriver.key.toString());
             nearbyDriver.latitude = map['latitude'];
             nearbyDriver.longitude = map['longitude'];
-            FireHelper.nearbyDriverList.add(nearbyDriver);
-
+            if (FireHelper.contains(map['key']) == true) {
+              print(map['key'].toString() + " Contains");
+            } else {
+              print("Adding");
+              FireHelper.nearbyDriverList.add(nearbyDriver);
+            }
             if (nearbyDriversKeysLoaded) {
               updateDriversOnMap();
             }
@@ -102,7 +117,6 @@ class _HomePageState extends State<HomePage> {
             FireHelper.removeFromList(map['key']);
             updateDriversOnMap();
             break;
-
           case Geofire.onKeyMoved:
             // Update your key's location
 
@@ -125,10 +139,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void updateDriversOnMap() {
-    setState(() {
-      markers.clear();
-    });
-
     Set<Marker> tempMarkers = Set<Marker>();
 
     for (NearbyDriver driver in FireHelper.nearbyDriverList) {
@@ -139,6 +149,7 @@ class _HomePageState extends State<HomePage> {
         icon: nearbyIcon,
         rotation: HelperMethods.generateRandomNumber(360),
       );
+      print(thisMarker.position.longitude.toString());
 
       tempMarkers.add(thisMarker);
     }
@@ -147,7 +158,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  TextEditingController dimension = TextEditingController();
   TextEditingController poids = TextEditingController();
   TextEditingController value = TextEditingController();
   TextEditingController locationexp = TextEditingController();
@@ -184,20 +194,19 @@ class _HomePageState extends State<HomePage> {
                     currentPosition = snapshot.data;
                     var positionactuelle =
                         LatLng(snapshot.data.latitude, snapshot.data.longitude);
-                    if (markers.isEmpty) {
+                    if (markersSet.isEmpty) {
+                      print("IsEmpty");
                       Marker marker = new Marker(
                           markerId: markerId,
                           position: LatLng(positionactuelle.latitude,
                               positionactuelle.longitude));
-                      markers.clear();
                       // adding a new marker to map
-                      markers[markerId] = marker.copyWith(
+                      markersSet.add(marker.copyWith(
                           positionParam: LatLng(positionactuelle.latitude,
-                              positionactuelle.longitude));
+                              positionactuelle.longitude)));
                     }
                     return _buildGoogleMap(context, positionactuelle);
                   } else if (snapshot.hasError) {
-                    print(snapshot.error.toString());
                     return Text("Erreur");
                   }
                   // By default, show a loading spinner.
@@ -280,7 +289,7 @@ class _HomePageState extends State<HomePage> {
             Positioned(
               bottom: 0,
               child: Container(
-                  height: screenheigh * 0.4,
+                  height: screenheigh * 0.43,
                   width: screenwidth,
                   decoration: BoxDecoration(
                     borderRadius:
@@ -302,11 +311,19 @@ class _HomePageState extends State<HomePage> {
                                   ResponsiveFlutter.of(context).scale(13)),
                           child: Container(
                             child: TextFormField(
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Veillez entrer la location de depart';
+                                }
+                                return null;
+                              },
                               onTap: () {
                                 Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => SearchScreen()));
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                SearchScreen()))
+                                    .then((value) => setState(() {}));
                               },
                               readOnly: true,
                               controller: locationexp,
@@ -370,10 +387,17 @@ class _HomePageState extends State<HomePage> {
                           child: Container(
                             child: TextFormField(
                               readOnly: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Veillez entrer la location d'entree";
+                                }
+                                return null;
+                              },
                               onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => SearchScreen())),
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => SearchScreen()))
+                                  .then((value) => setState(() {})),
                               controller: locationdes,
                               style: TextStyle(
                                   color: blue,
@@ -570,11 +594,45 @@ class _HomePageState extends State<HomePage> {
                                       topLeft: Radius.circular(20.0),
                                       bottomLeft: Radius.circular(20.0),
                                       bottomRight: Radius.circular(20.0))),
-                              onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          ConfirmerCommande())),
+                              onPressed: () async {
+                                if (formKey.currentState.validate()) {
+                                  // If the form is valid, display a snackbar. In the real world,
+                                  // you'd often call a server or save the information in a database.
+                                  var authprovider = Provider.of<AuthProvider>(
+                                      context,
+                                      listen: false);
+                                  EasyLoading.show();
+                                  Geofire.stopListener();
+                                  FireHelper.nearbyDriverList.clear();
+                                  var promotions = await ApiCalls()
+                                      .getPromotions(authprovider.token,
+                                          authprovider.client.idClient);
+                                  nbpromotions = promotions.length;
+                                  DirectionDetails directionDetails =
+                                      await Maps.obtainPlaceDirectionsDetails(
+                                          context,
+                                          provider.locationexp,
+                                          provider.locationdes);
+                                  provider.changeduration(double.tryParse(
+                                          directionDetails.durationValue
+                                              .toString()) /
+                                      60);
+                                  provider.changedistance(double.tryParse(
+                                          directionDetails.distanceValue
+                                              .toString()) /
+                                      1000);
+                                  price =
+                                      provider.duration * prixunitaireminute +
+                                          provider.distance * prixunitairekm +
+                                          prixarbitraire;
+                                  EasyLoading.dismiss();
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ConfirmerCommande()));
+                                }
+                              },
                               color: blue,
                               child: Text("Commander",
                                   style: TextStyle(
@@ -594,10 +652,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   getUserLocation() async {
+    var provider = Provider.of<CommandeProvider>(context, listen: false);
     markersSet.forEach((value) async {
-      var provider = Provider.of<CommandeProvider>(context, listen: false);
       // From coordinates
       final coordinates =
           new Coordinates(value.position.latitude, value.position.longitude);
@@ -647,7 +704,7 @@ class _HomePageState extends State<HomePage> {
         position:
             LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude));
     setState(() {
-      markersSet.remove(markerId);
+      markersSet.removeWhere((element) => element.markerId == MarkerId("443"));
       markersSet.add(marker.copyWith(
           positionParam:
               LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude)));
@@ -669,12 +726,60 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  resetApp() {
+    print("reset");
+    appState = 'NORMAL';
+    availableDrivers.clear();
+    FireHelper.nearbyDriverList.clear();
+    Geofire.queryAtLocation(
+            currentPosition.latitude, currentPosition.longitude, 20)
+        .listen((map) {
+      if (map != null) {
+        var callBack = map['callBack'];
+
+        switch (callBack) {
+          case Geofire.onKeyEntered:
+            NearbyDriver nearbyDriver = NearbyDriver();
+            nearbyDriver.key = map['key'];
+            print("entered key = " + nearbyDriver.key.toString());
+            nearbyDriver.latitude = map['latitude'];
+            nearbyDriver.longitude = map['longitude'];
+            FireHelper.nearbyDriverList.add(nearbyDriver);
+
+            if (nearbyDriversKeysLoaded) {
+              updateDriversOnMap();
+            }
+            break;
+
+          case Geofire.onKeyExited:
+            FireHelper.removeFromList(map['key']);
+            updateDriversOnMap();
+            break;
+          case Geofire.onKeyMoved:
+            // Update your key's location
+
+            NearbyDriver nearbyDriver = NearbyDriver();
+            nearbyDriver.key = map['key'];
+            nearbyDriver.latitude = map['latitude'];
+            nearbyDriver.longitude = map['longitude'];
+
+            FireHelper.updateNearbyLocation(nearbyDriver);
+            updateDriversOnMap();
+            break;
+
+          case Geofire.onGeoQueryReady:
+            nearbyDriversKeysLoaded = true;
+            updateDriversOnMap();
+            break;
+        }
+      }
+    });
+  }
+
   Widget _buildPopupDialog(BuildContext context) {
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
-    String selectedUser;
     List<String> _fragilite = ['Tres Fragile', 'Fragile', 'Solide'];
-    String selecteddimension;
     List<String> _dimensions = [
       'Petite Taille (1)',
       'Moyenne Taille (2)',
@@ -716,7 +821,7 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      width: screenwidth * 0.51,
+                      width: screenwidth * 0.63,
                       child: DropdownButtonFormField<String>(
                         decoration: CommonSyles.textDecoration(
                             context, "Dimensions", null),
@@ -724,6 +829,7 @@ class _HomePageState extends State<HomePage> {
                         onChanged: (String value) {
                           setState(() {
                             selecteddimension = value;
+                            print(selecteddimension);
                           });
                         },
                         items: _dimensions.map((dimension) {
@@ -742,12 +848,6 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                    IconButton(
-                        icon: Icon(
-                          Icons.info_outline,
-                          color: blue,
-                        ),
-                        onPressed: null)
                   ],
                 ),
               ),
@@ -755,7 +855,7 @@ class _HomePageState extends State<HomePage> {
                 height: screenheigh * 0.01,
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 6.0, right: 6.0),
+                padding: const EdgeInsets.only(left: 12.0, right: 6.0),
                 child: Container(
                     child: Text(
                         "(1) se transporte par moto*\n(2) se transporte par voiture*\n(3) se transporte par camion*")),
@@ -866,12 +966,15 @@ class _HomePageState extends State<HomePage> {
                               topLeft: Radius.circular(20.0),
                               bottomLeft: Radius.circular(20.0),
                               bottomRight: Radius.circular(20.0))),
-                      onPressed: () {
+                      onPressed: () async {
                         var provider = Provider.of<CommandeProvider>(context,
                             listen: false);
-                        print("Selected dimension : " + selecteddimension);
                         provider.changedimension(selecteddimension);
-                        print(provider.dimension);
+                        print("poids = " + poids.toString());
+                        provider.changepoids(double.parse(poids.text));
+                        provider.changevaleur(double.parse(value.text));
+                        print(selectedUser);
+                        provider.changefragilite(selectedUser);
                         Navigator.of(context, rootNavigator: true).pop();
                       },
                       color: blue,
@@ -1032,6 +1135,11 @@ class _HomePageState extends State<HomePage> {
                             bottomLeft: Radius.circular(20.0),
                             bottomRight: Radius.circular(20.0))),
                     onPressed: () {
+                      var provider =
+                          Provider.of<CommandeProvider>(context, listen: false);
+                      provider.changenomdest(nom.text);
+                      provider.changeprenomdest(prenom.text);
+                      provider.changeteldest(telephone.text);
                       Navigator.of(context, rootNavigator: true).pop();
                     },
                     color: blue,

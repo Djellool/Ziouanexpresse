@@ -59,9 +59,10 @@ class _PromotionState extends State<Promotion> {
                                         .toInt()
                                         .toString() +
                                     " DA";
-                            if (DateTime.now().difference(DateTime.tryParse(
-                                    snapshot.data[index].finValidite)) <
-                                Duration(days: 1)) {
+                            if ((DateTime.now().difference(DateTime.tryParse(
+                                        snapshot.data[index].finValidite)) <
+                                    Duration(days: 1)) &&
+                                snapshot.data[index].utilise == 0) {
                               return Container(
                                 width: screenwidth * 0.9,
                                 decoration:
@@ -412,7 +413,8 @@ class _PromotionState extends State<Promotion> {
                               onPressed: () {
                                 Map data = {
                                   "client_id": provider.client.idClient,
-                                  "code": codeController.text
+                                  "code": codeController.text,
+                                  "utilise": 1,
                                 };
                                 ApiCalls()
                                     .insererCode(context, provider.token, data);

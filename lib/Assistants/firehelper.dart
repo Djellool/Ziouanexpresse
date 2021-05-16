@@ -18,4 +18,16 @@ class FireHelper {
     nearbyDriverList[index].longitude = driver.longitude;
     nearbyDriverList[index].latitude = driver.latitude;
   }
+
+  static bool contains(String key) {
+    bool contains = false;
+    int index = nearbyDriverList.indexWhere((element) => element.key == key);
+    print(index);
+
+    if (index == null) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 }

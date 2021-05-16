@@ -28,8 +28,10 @@ class _SearchScreenState extends State<SearchScreen> {
   bool champ;
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<CommandeProvider>(context);
-    if (provider.locationexp != "" && provider.locationdes != "") {
+    var provider = Provider.of<CommandeProvider>(context, listen: false);
+    if ((provider.locationexp != "" || provider.locationdes != "") &&
+        locationdes.text == "" &&
+        locationexp.text == "") {
       locationexp.text = provider.locationexp;
       locationdes.text = provider.locationdes;
     }
@@ -68,7 +70,6 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: Container(
                               child: TextFormField(
                                 onChanged: (val) {
-                                  provider.changelocationexp("");
                                   champ = true;
                                   findplace(val);
                                 },
@@ -131,7 +132,6 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: Container(
                               child: TextFormField(
                                 onChanged: (val) {
-                                  provider.changelocationdes("");
                                   champ = false;
                                   findplace(val);
                                 },
@@ -232,17 +232,21 @@ class _SearchScreenState extends State<SearchScreen> {
                                 onTap: () {
                                   setState(() {
                                     if (champ == true) {
-                                      locationexp.text =
+                                      String exp =
                                           placepPredictionList[index].mainText +
                                               " " +
                                               placepPredictionList[index]
                                                   .secondaryText;
+                                      provider.changelocationexp(exp);
+                                      locationexp.text = exp;
                                     } else {
-                                      locationdes.text =
+                                      String des =
                                           placepPredictionList[index].mainText +
                                               " " +
                                               placepPredictionList[index]
                                                   .secondaryText;
+                                      provider.changelocationdes(des);
+                                      locationdes.text = des;
                                     }
                                   });
                                   node.requestFocus();
@@ -279,7 +283,6 @@ class _SearchScreenState extends State<SearchScreen> {
       } else {
         if (response["status"] == "OK") {
           var predictions = response["predictions"];
-          print(predictions.toString());
           var placeslist = (predictions as List)
               .map((e) => PlacePredictions.fromJson(e))
               .toList();

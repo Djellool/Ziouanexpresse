@@ -37,7 +37,6 @@ class _ZeClientState extends State<ZeClient> {
     String token = await storage.read(key: "token");
     await Provider.of<AuthProvider>(context, listen: false)
         .tryToken(context, token);
-    print("token : $token");
   }
 
   @override
@@ -48,9 +47,10 @@ class _ZeClientState extends State<ZeClient> {
   }
 
   final Future<FirebaseApp> _future = Firebase.initializeApp();
-
   @override
   Widget build(BuildContext context) {
+    EasyLoading.instance..indicatorType = EasyLoadingIndicatorType.fadingCube;
+
     return MaterialApp(
       home: SafeArea(
         child: Scaffold(body: Consumer<AuthProvider>(
