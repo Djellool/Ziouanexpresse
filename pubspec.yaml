@@ -26,6 +26,11 @@ dependencies:
   provider: ^4.3.3
   responsive_flutter:
   google_maps_flutter:
+  firebase_database: ^4.4.0
+  firebase_core: ^0.5.3
+  firebase_auth:
+  cloud_firestore:
+  connectivity: ^0.4.8+6
   pinput:
   custom_timer:
   url_launcher:
@@ -38,6 +43,7 @@ dependencies:
   location: ^3.0.2
   geolocator: ^6.2.1
   geocoder: ^0.2.1
+  flutter_geofire:
   http:
   dio:
   flutter_secure_storage:

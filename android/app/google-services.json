@@ -1,42 +1,86 @@
 {
   "project_info": {
-    "project_number": "441495251811",
-    "project_id": "zeclient-4aa85",
-    "storage_bucket": "zeclient-4aa85.appspot.com"
+    "project_number": "676351222684",
+    "firebase_url": "https://ziouaneproject-default-rtdb.firebaseio.com",
+    "project_id": "ziouaneproject",
+    "storage_bucket": "ziouaneproject.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:441495251811:android:930dfaa57b46ced04bc156",
+        "mobilesdk_app_id": "1:676351222684:android:4580035b22cbf43b235e59",
         "android_client_info": {
-          "package_name": "com.example.ziouanexpress"
+          "package_name": "com.example.ze_livreur"
         }
       },
       "oauth_client": [
         {
-          "client_id": "441495251811-jf73k1e3a0i3ielg4g0q0tpgdu7iller.apps.googleusercontent.com",
+          "client_id": "676351222684-uo3ebkahujasn32bstj7mh3c6ooa5gkl.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.ziouanexpress",
+            "package_name": "com.example.ze_livreur",
             "certificate_hash": "9dd0c34e186653025a821a5d5ef4d4df24fc60f1"
           }
         },
         {
-          "client_id": "441495251811-p712cjv3n6la9c2rngn02b211o7rs5d1.apps.googleusercontent.com",
+          "client_id": "676351222684-rnb4asunglua0t83gh3m2b01vsm36tht.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDsexSTT3u9Iyh_Jug1FpxkYMInHTz4jBA"
+          "current_key": "AIzaSyAP7liOJtATNmGMiTihPlUSrW0qWvZiM44"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "441495251811-p712cjv3n6la9c2rngn02b211o7rs5d1.apps.googleusercontent.com",
+              "client_id": "676351222684-rnb4asunglua0t83gh3m2b01vsm36tht.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "676351222684-pvlbgoo4cbq794fe92btuihsfjph2q9o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.zelivreur"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676351222684:android:75a5d7f52468fb9b235e59",
+        "android_client_info": {
+          "package_name": "com.example.ziouanexpress"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "676351222684-rnb4asunglua0t83gh3m2b01vsm36tht.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP7liOJtATNmGMiTihPlUSrW0qWvZiM44"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "676351222684-rnb4asunglua0t83gh3m2b01vsm36tht.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "676351222684-pvlbgoo4cbq794fe92btuihsfjph2q9o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.zelivreur"
+              }
             }
           ]
         }
