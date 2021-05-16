@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
-import 'package:ziouanexpress/Screens/Views/Login-Inscription/PasswordCode.dart';
+import 'package:ziouanexpress/Services/ApiCalls.dart';
 
 class ForgottenPasswordScreen extends StatefulWidget {
   @override
@@ -118,6 +121,12 @@ class _ForgottenPasswordScreenState extends State<ForgottenPasswordScreen> {
                         left: 16.0, right: 16.0, bottom: 16.0),
                     child: Container(
                       child: TextFormField(
+                        validator: (value) {
+                          if (value.length < 10) {
+                            return "Veuillez introduire un numéro valide";
+                          }
+                          return null;
+                        },
                         onEditingComplete: () => node.unfocus(),
                         textInputAction: TextInputAction.done,
                         controller: phoneController,
@@ -154,11 +163,14 @@ class _ForgottenPasswordScreenState extends State<ForgottenPasswordScreen> {
                     ),
                     child: FlatButton(
                       onPressed: () {
+                        EasyLoading.show();
                         node.unfocus();
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => PasswordCodeScreen()));
+                        Provider.of<GeneralProvider>(context, listen: false)
+                            .changeForgettenPhone(phoneController.text);
+                        Map data = {
+                          "telephone": phoneController.text,
+                        };
+                        ApiCalls().sendEmail(context, data);
                       },
                       child: Text(
                         "Rénitialiser",

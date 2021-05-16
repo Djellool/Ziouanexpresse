@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
+import 'package:ziouanexpress/Services/ApiCalls.dart';
 
 class ProfilePassword extends StatefulWidget {
   @override
@@ -11,10 +14,8 @@ class _ProfilePasswordState extends State<ProfilePassword> {
   final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
 
-  TextEditingController passwordController =
-      TextEditingController(text: "password");
-  TextEditingController passwordConfController =
-      TextEditingController(text: "password");
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController passwordConfController = TextEditingController();
 
   final Color background = Color(0xFFF2F2F2);
   final Color orange = Color(0xFFF28322);
@@ -22,6 +23,7 @@ class _ProfilePasswordState extends State<ProfilePassword> {
   final Color white = Colors.white;
   final Color grey = Color(0xFFC4C4C4);
   final Color grey2 = Color(0xFF646464);
+  var provider;
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +109,15 @@ class _ProfilePasswordState extends State<ProfilePassword> {
                         child: TextFormField(
                           onEditingComplete: () => node.unfocus(),
                           textInputAction: TextInputAction.done,
-                          validator: (value) => validation(value),
+                          validator: (value) {
+                            if (value.length < 8 || value.isEmpty) {
+                              return "Mot de passe moin de 8 caracteres";
+                            }
+                            if (value != passwordController.text) {
+                              return "Mots de passe non identique";
+                            }
+                            return null;
+                          },
                           controller: passwordConfController,
                           cursorColor: grey2,
                           obscureText: true,
@@ -200,7 +210,16 @@ class _ProfilePasswordState extends State<ProfilePassword> {
       child: FlatButton(
         onPressed: () {
           node.unfocus();
-          if (_formKey.currentState.validate()) {}
+          if (_formKey.currentState.validate()) {
+            Map data = {"password": passwordController.text};
+            ApiCalls().changerPassword(
+                context,
+                Provider.of<AuthProvider>(context, listen: false).token,
+                Provider.of<AuthProvider>(context, listen: false)
+                    .client
+                    .idClient,
+                data);
+          }
         },
         child: Text(
           "Sauvegarder",

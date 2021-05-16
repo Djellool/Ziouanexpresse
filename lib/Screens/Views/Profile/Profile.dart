@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
+import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
+import 'package:ziouanexpress/Screens/Views/Profile/ConfirmerPhone.dart';
 import 'package:ziouanexpress/Screens/Views/Profile/ProfilePassword.dart';
+import 'package:ziouanexpress/Services/ApiCalls.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -40,6 +44,10 @@ class _ProfilePageState extends State<ProfilePage> {
     _prenomController = TextEditingController(text: provider.prenom);
     _emailController = TextEditingController(text: provider.email);
     _phoneController = TextEditingController(text: provider.telephone);
+    _nom = provider.nom;
+    _prenom = provider.prenom;
+    _email = provider.email;
+    _phone = provider.telephone;
   }
 
   bool changed = false;
@@ -58,9 +66,15 @@ class _ProfilePageState extends State<ProfilePage> {
   final Color grey = Color(0xFFC4C4C4);
   final Color grey2 = Color(0xFF646464);
 
+  String _nom;
+  String _prenom;
+  String _phone;
+  String _email;
   @override
   Widget build(BuildContext context) {
     final node = FocusScope.of(context);
+    var provider = Provider.of<AuthProvider>(context, listen: false).client;
+
     return SafeArea(
       child: Scaffold(
         key: _scaffoldkey,
@@ -80,16 +94,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         avatar(context),
-                        namefield(context, node),
-                        prenomfield(context, node),
-                        phonefield(
-                          context,
-                          node,
-                        ),
-                        emailfield(
-                          context,
-                          node,
-                        ),
+                        namefield(context, node, provider.nom),
+                        prenomfield(context, node, provider.prenom),
+                        phonefield(context, node, provider.telephone),
+                        emailfield(context, node, provider.email),
                         button(context, node),
                       ],
                     ),
@@ -118,7 +126,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget namefield(BuildContext context, FocusNode node) {
+  Widget namefield(BuildContext context, FocusNode node, String nom) {
     return Padding(
       padding:
           const EdgeInsets.only(top: 08, left: 16.0, right: 16.0, bottom: 8),
@@ -129,6 +137,13 @@ class _ProfilePageState extends State<ProfilePage> {
           controller: _nomController,
           cursorColor: grey2,
           keyboardType: TextInputType.name,
+          onChanged: (value) {
+            _nom = value;
+            if (_nom != nom)
+              changed = true;
+            else
+              changed = false;
+          },
           style: TextStyle(
               letterSpacing: 01,
               color: grey2,
@@ -149,10 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget prenomfield(
-    BuildContext context,
-    FocusNode node,
-  ) {
+  Widget prenomfield(BuildContext context, FocusNode node, String prenom) {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
       child: Container(
@@ -162,6 +174,13 @@ class _ProfilePageState extends State<ProfilePage> {
           controller: _prenomController,
           cursorColor: grey2,
           keyboardType: TextInputType.name,
+          onChanged: (value) {
+            _prenom = value;
+            if (_prenom != prenom)
+              changed = true;
+            else
+              changed = false;
+          },
           style: TextStyle(
               letterSpacing: 01,
               color: grey2,
@@ -182,7 +201,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget emailfield(BuildContext context, FocusNode node) {
+  Widget emailfield(BuildContext context, FocusNode node, String email) {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16),
       child: Container(
@@ -193,6 +212,13 @@ class _ProfilePageState extends State<ProfilePage> {
           cursorColor: grey2,
           validator: (value) => _emailValidation(value),
           keyboardType: TextInputType.emailAddress,
+          onChanged: (value) {
+            _email = value;
+            if (_email != email)
+              changed = true;
+            else
+              changed = false;
+          },
           style: TextStyle(
               letterSpacing: 01,
               color: grey2,
@@ -213,10 +239,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget phonefield(
-    BuildContext context,
-    FocusNode node,
-  ) {
+  Widget phonefield(BuildContext context, FocusNode node, String telephone) {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
       child: Container(
@@ -226,6 +249,14 @@ class _ProfilePageState extends State<ProfilePage> {
           controller: _phoneController,
           cursorColor: grey2,
           keyboardType: TextInputType.phone,
+          onChanged: (value) {
+            print(_phone);
+            _phone = value;
+            if (_phone != telephone)
+              changed = true;
+            else
+              changed = false;
+          },
           style: TextStyle(
               letterSpacing: 01,
               color: grey2,
@@ -270,7 +301,36 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       child: FlatButton(
         onPressed: () {
+          var provider = Provider.of<AuthProvider>(context, listen: false);
           node.unfocus();
+          if (this.changed) {
+            if (_phone !=
+                Provider.of<AuthProvider>(context, listen: false)
+                    .client
+                    .telephone) {
+              Provider.of<GeneralProvider>(context, listen: false)
+                  .changeNom(_nomController.text);
+              Provider.of<GeneralProvider>(context, listen: false)
+                  .changePrenom(_prenomController.text);
+              Provider.of<GeneralProvider>(context, listen: false)
+                  .changeEMail(_emailController.text);
+              Provider.of<GeneralProvider>(context, listen: false)
+                  .changePhoneNumber(_phoneController.text);
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => ChangeNumberScreen()));
+            } else {
+              Map<String, dynamic> data = {
+                "nom": _nomController.text.toString(),
+                "prenom": _prenomController.text.toString(),
+                "email": _emailController.text.toString(),
+                "telephone": _phoneController.text.toString(),
+              };
+              ApiCalls().changeClientInfo(context, data,
+                  provider.client.idClient.toString(), provider.token);
+            }
+          } else {
+            return null;
+          }
         },
         child: Text(
           "Sauvegarder",
@@ -310,9 +370,11 @@ class _ProfilePageState extends State<ProfilePage> {
           FlatButton(
               padding: EdgeInsets.all(0),
               onPressed: () async {
+                EasyLoading.show();
+                Navigator.pop(context);
                 await Provider.of<AuthProvider>(context, listen: false)
                     .logout();
-                Navigator.pop(context);
+                EasyLoading.dismiss();
               },
               child: CommonSyles.rows(
                   "Déconnexion", Icons.logout, context, orange)),

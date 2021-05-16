@@ -1,5 +1,12 @@
+import 'dart:io';
+
+import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:ziouanexpress/Provider/Auth.dart';
+import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 
 class PasswordCodeScreen extends StatefulWidget {
@@ -8,6 +15,9 @@ class PasswordCodeScreen extends StatefulWidget {
 }
 
 class _PasswordCodeScreenState extends State<PasswordCodeScreen> {
+  String deviceName;
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
   final Color violet = Color(0xFF382B8C);
   final Color white = Colors.white;
   final Color grey = Color(0xFFC4C4C4);
@@ -17,6 +27,22 @@ class _PasswordCodeScreenState extends State<PasswordCodeScreen> {
   final GlobalKey formKey = GlobalKey<FormState>();
 
   TextEditingController codeController = TextEditingController(text: "X3X78RM");
+
+  Future<void> getDeviceName() async {
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      this.deviceName = androidInfo.model;
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      this.deviceName = iosInfo.utsname.machine;
+    }
+  }
+
+  @override
+  void initState() {
+    getDeviceName();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +170,18 @@ class _PasswordCodeScreenState extends State<PasswordCodeScreen> {
                           bottomRight: Radius.circular(20)),
                     ),
                     child: FlatButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        EasyLoading.show();
+                        Map creds = {
+                          "telephone": Provider.of<GeneralProvider>(context,
+                                  listen: false)
+                              .forgettenPhone,
+                          "code": codeController.text,
+                          "device_name": deviceName
+                        };
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .loginWithoutPass(context, creds);
+                      },
                       child: Text(
                         "Rénitialiser",
                         style: TextStyle(
