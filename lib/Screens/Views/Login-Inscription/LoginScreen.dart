@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
-import 'package:ziouanexpress/Assistants/HelperMethods.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
@@ -280,9 +279,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   listen: false)
                               .login(context, map);
                           EasyLoading.dismiss();
-                          setState(() {
-                            tried = false;
-                          });
+                          if (!mounted)
+                            setState(() {
+                              tried = false;
+                            });
                           if (response == null) {
                             setState(() {
                               tried = true;

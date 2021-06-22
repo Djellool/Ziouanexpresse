@@ -51,8 +51,8 @@ dependencies:
   flutter_spinkit:
   intl:
   top_snackbar_flutter:
-  firebase_auth:
   device_info:
+  rflutter_alert:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0

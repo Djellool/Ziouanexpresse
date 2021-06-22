@@ -47,6 +47,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
   String prix = price.toStringAsFixed(0);
   double prixavecpromo = price;
   DatabaseReference rideRef;
+  // ignore: cancel_subscriptions
   StreamSubscription<Event> rideSubscription;
 
   @override
@@ -265,11 +266,6 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
 
       //get and use driver location updates
       if (event.snapshot.value['driver_location'] != null) {
-        double driverLat = double.parse(
-            event.snapshot.value['driver_location']['latitude'].toString());
-        double driverLng = double.parse(
-            event.snapshot.value['driver_location']['longitude'].toString());
-        LatLng driverLocation = LatLng(driverLat, driverLng);
 
         if (status == 'accepted') {
         } else if (status == 'ontrip') {
@@ -290,7 +286,6 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
 
       if (status == 'ended') {
         if (event.snapshot.value['fares'] != null) {
-          int fares = int.parse(event.snapshot.value['fares'].toString());
         }
       }
     });
@@ -356,6 +351,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
 
       const oneSecTick = Duration(seconds: 1);
 
+      // ignore: unused_local_variable
       var timer = Timer.periodic(oneSecTick, (timer) {
         // stop timer when ride request is cancelled;
         if (appState != 'REQUESTING') {

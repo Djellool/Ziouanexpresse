@@ -7,7 +7,6 @@ import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Provider/InscriptionProvider.dart';
 import 'package:ziouanexpress/Provider/commande.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:ziouanexpress/Screens/Views/Home/HomePage.dart';
 import 'package:ziouanexpress/Screens/Views/Login-Inscription/LoginScreen.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -49,6 +48,7 @@ class _ZeClientState extends State<ZeClient> {
     super.initState();
   }
 
+  // ignore: unused_field
   final Future<FirebaseApp> _future = Firebase.initializeApp();
   @override
   Widget build(BuildContext context) {

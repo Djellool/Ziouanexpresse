@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:ziouanexpress/Assistants/HelperMethods.dart';
 import 'package:ziouanexpress/Assistants/firehelper.dart';
 import 'package:ziouanexpress/Assistants/globalvariables.dart';
@@ -59,6 +60,7 @@ class _HomePageState extends State<HomePage> {
   String selecteddimension;
   String selectedUser;
 
+  // ignore: unused_field
   GoogleMapController _controller;
 
   // This widget is the root of your application.
@@ -153,9 +155,39 @@ class _HomePageState extends State<HomePage> {
 
       tempMarkers.add(thisMarker);
     }
+    if (!mounted) return;
     setState(() {
       markersSet = tempMarkers;
     });
+  }
+
+  showAlertDialog(BuildContext context) {
+    // set up the button
+    Alert(
+      context: context,
+      type: AlertType.error,
+      title: "Erreur",
+      desc: "Veuillez saisir toutes les informations pour continuer !!",
+      buttons: [
+        DialogButton(
+          color: blue,
+          radius: BorderRadius.only(
+              topLeft: Radius.circular(20.0),
+              bottomLeft: Radius.circular(20.0),
+              bottomRight: Radius.circular(20.0)),
+          child: Text(
+            "Retour",
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: ResponsiveFlutter.of(context).fontSize(3),
+                fontFamily: "Nunito"),
+          ),
+          onPressed: () => Navigator.pop(context),
+          width: ResponsiveFlutter.of(context).wp(40),
+          height: ResponsiveFlutter.of(context).wp(15),
+        )
+      ],
+    ).show();
   }
 
   TextEditingController poids = TextEditingController();
@@ -169,6 +201,23 @@ class _HomePageState extends State<HomePage> {
   final formKey = GlobalKey<FormState>();
   var scaffoldKey = GlobalKey<ScaffoldState>();
   List<bool> _selections = [true, false];
+
+  void setStateIfMounted(f) {
+    if (mounted) setState(f);
+  }
+
+  @override
+  void dispose() {
+    telephone.dispose();
+    prenom.dispose();
+    nom.dispose();
+    locationdes.dispose();
+    locationexp.dispose();
+    value.dispose();
+    poids.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -573,7 +622,7 @@ class _HomePageState extends State<HomePage> {
                                                       fontSize:
                                                           ResponsiveFlutter.of(
                                                                   context)
-                                                              .fontSize(2.3),
+                                                              .fontSize(2.1),
                                                       fontFamily: "Nunito",
                                                       fontWeight:
                                                           FontWeight.bold)),
@@ -595,42 +644,60 @@ class _HomePageState extends State<HomePage> {
                                       bottomLeft: Radius.circular(20.0),
                                       bottomRight: Radius.circular(20.0))),
                               onPressed: () async {
-                                if (formKey.currentState.validate()) {
-                                  // If the form is valid, display a snackbar. In the real world,
-                                  // you'd often call a server or save the information in a database.
-                                  var authprovider = Provider.of<AuthProvider>(
-                                      context,
-                                      listen: false);
-                                  EasyLoading.show();
-                                  Geofire.stopListener();
-                                  FireHelper.nearbyDriverList.clear();
-                                  var promotions = await ApiCalls()
-                                      .getPromotions(authprovider.token,
-                                          authprovider.client.idClient);
-                                  nbpromotions = promotions.length;
-                                  DirectionDetails directionDetails =
-                                      await Maps.obtainPlaceDirectionsDetails(
-                                          context,
-                                          provider.locationexp,
-                                          provider.locationdes);
-                                  provider.changeduration(double.tryParse(
-                                          directionDetails.durationValue
-                                              .toString()) /
-                                      60);
-                                  provider.changedistance(double.tryParse(
-                                          directionDetails.distanceValue
-                                              .toString()) /
-                                      1000);
-                                  price =
-                                      provider.duration * prixunitaireminute +
-                                          provider.distance * prixunitairekm +
-                                          prixarbitraire;
-                                  EasyLoading.dismiss();
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              ConfirmerCommande()));
+                                if (provider.locationdes != null &&
+                                    provider.locationexp != null &&
+                                    provider.dimension != null &&
+                                    provider.poids != null &&
+                                    provider.fragilite != null &&
+                                    provider.valeur != null &&
+                                    provider.nomdest != null &&
+                                    provider.prenomdest != null &&
+                                    provider.teldest != null) {
+                                  if (provider.locationdes.trim().isNotEmpty &&
+                                      provider.locationexp.trim().isNotEmpty &&
+                                      provider.dimension.trim().isNotEmpty &&
+                                      provider.fragilite.trim().isNotEmpty &&
+                                      provider.nomdest.trim().isNotEmpty &&
+                                      provider.prenomdest.trim().isNotEmpty &&
+                                      provider.teldest.trim().isNotEmpty) {
+                                    var authprovider =
+                                        Provider.of<AuthProvider>(context,
+                                            listen: false);
+                                    EasyLoading.show();
+                                    Geofire.stopListener();
+                                    FireHelper.nearbyDriverList.clear();
+                                    var promotions = await ApiCalls()
+                                        .getPromotions(authprovider.token,
+                                            authprovider.client.idClient);
+                                    nbpromotions = promotions.length;
+                                    DirectionDetails directionDetails =
+                                        await Maps.obtainPlaceDirectionsDetails(
+                                            context,
+                                            provider.locationexp,
+                                            provider.locationdes);
+                                    provider.changeduration(double.tryParse(
+                                            directionDetails.durationValue
+                                                .toString()) /
+                                        60);
+                                    provider.changedistance(double.tryParse(
+                                            directionDetails.distanceValue
+                                                .toString()) /
+                                        1000);
+                                    price =
+                                        provider.duration * prixunitaireminute +
+                                            provider.distance * prixunitairekm +
+                                            prixarbitraire;
+                                    EasyLoading.dismiss();
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ConfirmerCommande()));
+                                  } else {
+                                    showAlertDialog(context);
+                                  }
+                                } else {
+                                  showAlertDialog(context);
                                 }
                               },
                               color: blue,
@@ -821,7 +888,7 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      width: screenwidth * 0.63,
+                      width: screenwidth * 0.6,
                       child: DropdownButtonFormField<String>(
                         decoration: CommonSyles.textDecoration(
                             context, "Dimensions", null),

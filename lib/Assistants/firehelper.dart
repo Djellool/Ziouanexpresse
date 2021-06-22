@@ -20,7 +20,6 @@ class FireHelper {
   }
 
   static bool contains(String key) {
-    bool contains = false;
     int index = nearbyDriverList.indexWhere((element) => element.key == key);
     print(index);
 

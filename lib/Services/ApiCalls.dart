@@ -9,6 +9,7 @@ import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:ziouanexpress/Models/CodePoints.dart';
+import 'package:ziouanexpress/Models/ColisExt.dart';
 import 'package:ziouanexpress/Models/Historique.dart';
 import 'package:ziouanexpress/Models/HistoriqueDetail.dart';
 import 'package:ziouanexpress/Models/Promotion.dart';
@@ -41,6 +42,19 @@ class ApiCalls {
       print(e.error.toString());
     }
 
+    return null;
+  }
+
+  Future<ColisExt> getColisExt(String token, idLivraison) async {
+    try {
+      Dio.Response response = await dio().get(
+          '/ColisExt/' + idLivraison.toString(),
+          options: Dio.Options(headers: {'Authorization': 'Bearer $token'}));
+      if (response.statusCode == 200)
+        return ColisExt.fromJson(response.data[0]);
+    } on Dio.DioError catch (e) {
+      print(e.error.toString());
+    }
     return null;
   }
 
