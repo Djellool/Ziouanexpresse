@@ -11,6 +11,7 @@ class RequestAssistant {
         var decodedata = jsonDecode(jsonData);
         return decodedata;
       } else {
+        print("Response = " + response.statusCode.toString());
         return "Failed";
       }
     } catch (exp) {

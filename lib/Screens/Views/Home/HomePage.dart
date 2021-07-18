@@ -87,7 +87,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void startGeofireListener(LatLng currentPosition) {
-    print("Before length :" + FireHelper.nearbyDriverList.length.toString());
     Geofire.initialize('driversAvailable');
     Geofire.queryAtLocation(
             currentPosition.latitude, currentPosition.longitude, 20)
@@ -99,13 +98,10 @@ class _HomePageState extends State<HomePage> {
           case Geofire.onKeyEntered:
             NearbyDriver nearbyDriver = NearbyDriver();
             nearbyDriver.key = map['key'];
-            print("entered key = " + nearbyDriver.key.toString());
             nearbyDriver.latitude = map['latitude'];
             nearbyDriver.longitude = map['longitude'];
             if (FireHelper.contains(map['key']) == true) {
-              print(map['key'].toString() + " Contains");
             } else {
-              print("Adding");
               FireHelper.nearbyDriverList.add(nearbyDriver);
             }
             if (nearbyDriversKeysLoaded) {
@@ -141,6 +137,7 @@ class _HomePageState extends State<HomePage> {
   void updateDriversOnMap() {
     Set<Marker> tempMarkers = Set<Marker>();
 
+    print(FireHelper.nearbyDriverList.length.toString());
     for (NearbyDriver driver in FireHelper.nearbyDriverList) {
       LatLng driverPosition = LatLng(driver.latitude, driver.longitude);
       Marker thisMarker = Marker(
@@ -149,8 +146,6 @@ class _HomePageState extends State<HomePage> {
         icon: nearbyIcon,
         rotation: HelperMethods.generateRandomNumber(360),
       );
-      print(thisMarker.position.longitude.toString());
-
       tempMarkers.add(thisMarker);
     }
     setState(() {
@@ -191,17 +186,26 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final MarkerId markerId = MarkerId("443");
+                    final MarkerId markerId2 = MarkerId("444");
                     currentPosition = snapshot.data;
                     var positionactuelle =
                         LatLng(snapshot.data.latitude, snapshot.data.longitude);
                     if (markersSet.isEmpty) {
-                      print("IsEmpty");
                       Marker marker = new Marker(
                           markerId: markerId,
                           position: LatLng(positionactuelle.latitude,
                               positionactuelle.longitude));
+                      Marker marker2 = new Marker(
+                          markerId: markerId2,
+                          position: LatLng(positionactuelle.latitude,
+                              positionactuelle.longitude),
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                              BitmapDescriptor.hueBlue));
                       // adding a new marker to map
                       markersSet.add(marker.copyWith(
+                          positionParam: LatLng(positionactuelle.latitude,
+                              positionactuelle.longitude)));
+                      markersSet.add(marker2.copyWith(
                           positionParam: LatLng(positionactuelle.latitude,
                               positionactuelle.longitude)));
                     }
@@ -281,6 +285,31 @@ class _HomePageState extends State<HomePage> {
                         }
                       }
                     });
+                    if (index == 0) {
+                      markersSet.forEach((value) async {
+                        if (value.markerId == MarkerId("443")) {
+                          var newPosition = CameraPosition(
+                              target: LatLng(value.position.latitude,
+                                  value.position.longitude),
+                              zoom: 13);
+                          CameraUpdate update =
+                              CameraUpdate.newCameraPosition(newPosition);
+                          _controller.moveCamera(update);
+                        }
+                      });
+                    } else {
+                      markersSet.forEach((value) async {
+                        if (value.markerId == MarkerId("444")) {
+                          var newPosition = CameraPosition(
+                              target: LatLng(value.position.latitude,
+                                  value.position.longitude),
+                              zoom: 13);
+                          CameraUpdate update =
+                              CameraUpdate.newCameraPosition(newPosition);
+                          _controller.moveCamera(update);
+                        }
+                      });
+                    }
                   },
                   isSelected: _selections,
                 ),
@@ -603,6 +632,11 @@ class _HomePageState extends State<HomePage> {
                                       listen: false);
                                   EasyLoading.show();
                                   Geofire.stopListener();
+                                  print(provider.wilayades);
+                                  print(provider.wilayaexp);
+                                  int interwilaya = HelperMethods.comparewilaya(
+                                      provider.wilayaexp, provider.wilayades);
+                                  provider.changeinterwilaya(interwilaya);
                                   FireHelper.nearbyDriverList.clear();
                                   var promotions = await ApiCalls()
                                       .getPromotions(authprovider.token,
@@ -654,20 +688,36 @@ class _HomePageState extends State<HomePage> {
 
   getUserLocation() async {
     var provider = Provider.of<CommandeProvider>(context, listen: false);
-    markersSet.forEach((value) async {
-      // From coordinates
-      final coordinates =
-          new Coordinates(value.position.latitude, value.position.longitude);
-      var addresses = await Geocoder.google(kGoogleApiKey)
-          .findAddressesFromCoordinates(coordinates);
-      if (_selections.first == true) {
-        provider.changelocationexp(addresses.first.featureName);
-        locationexp.text = addresses.first.featureName;
-      } else {
-        provider.changelocationdes(addresses.first.featureName);
-        locationdes.text = addresses.first.featureName;
-      }
-    });
+    if (_selections.first == true) {
+      markersSet.forEach((value) async {
+        // From coordinates
+        if (value.markerId == MarkerId("443")) {
+          final coordinates = new Coordinates(
+              value.position.latitude, value.position.longitude);
+          var addresses = await Geocoder.google(kGoogleApiKey)
+              .findAddressesFromCoordinates(coordinates);
+          print(addresses.first.toMap().toString());
+          provider.changelocationexp(addresses.first.featureName);
+          provider.changewilayaexp(addresses.first.adminArea);
+          provider.changelocalityexp(addresses.first.locality);
+          locationexp.text = addresses.first.featureName;
+        }
+      });
+    } else {
+      markersSet.forEach((value) async {
+        // From coordinates
+        if (value.markerId == MarkerId("444")) {
+          final coordinates = new Coordinates(
+              value.position.latitude, value.position.longitude);
+          var addresses = await Geocoder.google(kGoogleApiKey)
+              .findAddressesFromCoordinates(coordinates);
+          provider.changelocationdes(addresses.first.featureName);
+          provider.changewilayades(addresses.first.adminArea);
+          provider.changelocalitydes(addresses.first.locality);
+          locationdes.text = addresses.first.featureName;
+        }
+      });
+    }
   }
 
   Widget _buildGoogleMap(BuildContext context, LatLng locationactuelle) {
@@ -695,24 +745,46 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _updatePosition(CameraPosition _position) {
-    final MarkerId markerId = MarkerId("443");
-    Position newMarkerPosition = Position(
-        latitude: _position.target.latitude,
-        longitude: _position.target.longitude);
-    Marker marker = new Marker(
-        markerId: markerId,
-        position:
-            LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude));
-    setState(() {
-      markersSet.removeWhere((element) => element.markerId == MarkerId("443"));
-      markersSet.add(marker.copyWith(
-          positionParam:
-              LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude)));
-    });
+    if (_selections.first == true) {
+      final MarkerId markerId = MarkerId("443");
+      Position newMarkerPosition = Position(
+          latitude: _position.target.latitude,
+          longitude: _position.target.longitude);
+      Marker marker = new Marker(
+          markerId: markerId,
+          position:
+              LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude));
+      setState(() {
+        markersSet
+            .removeWhere((element) => element.markerId == MarkerId("443"));
+        markersSet.add(marker.copyWith(
+            positionParam: LatLng(
+                newMarkerPosition.latitude, newMarkerPosition.longitude)));
+      });
+    } else {
+      final MarkerId markerId = MarkerId("444");
+      Position newMarkerPosition = Position(
+          latitude: _position.target.latitude,
+          longitude: _position.target.longitude);
+      Marker marker = new Marker(
+          markerId: markerId,
+          position:
+              LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue));
+      setState(() {
+        markersSet
+            .removeWhere((element) => element.markerId == MarkerId("444"));
+        markersSet.add(marker.copyWith(
+            positionParam: LatLng(
+                newMarkerPosition.latitude, newMarkerPosition.longitude)));
+      });
+    }
   }
 
   void createMarker() {
     if (nearbyIcon == null) {
+      print("True nearby icon");
       ImageConfiguration imageConfiguration =
           createLocalImageConfiguration(context, size: Size(1, 1));
       BitmapDescriptor.fromAssetImage(
@@ -970,7 +1042,6 @@ class _HomePageState extends State<HomePage> {
                         var provider = Provider.of<CommandeProvider>(context,
                             listen: false);
                         provider.changedimension(selecteddimension);
-                        print("poids = " + poids.toString());
                         provider.changepoids(double.parse(poids.text));
                         provider.changevaleur(double.parse(value.text));
                         print(selectedUser);

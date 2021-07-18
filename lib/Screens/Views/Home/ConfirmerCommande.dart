@@ -23,6 +23,8 @@ import 'package:ziouanexpress/Services/ApiCalls.dart';
 import 'package:ziouanexpress/Services/Maps.dart';
 import 'package:ziouanexpress/Models/Promotion.dart';
 
+import 'NoDriverDialog.dart';
+
 class ConfirmerCommande extends StatefulWidget {
   @override
   _ConfirmerCommandeState createState() => _ConfirmerCommandeState();
@@ -34,6 +36,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
   Color background = Color(0xFFF2F2F2);
   Color green = Color(0xFF4ED964);
   Color red = Color(0xFFFF3A32);
+  Color redbordeau = Color(0xFFB11B16);
   Color orange = Color(0xFFF28322);
   Color blue = Color(0xFF382B8C);
   GoogleMapController _controller;
@@ -53,6 +56,12 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
   void initState() {
     super.initState();
   }
+
+  LatLng _initialcameraposition = LatLng(36.7525, 3.04197);
+  List<Promotions> promotions = [];
+  List<String> codes = [];
+  List<NearbyDriver> availableDrivers;
+  String appState = 'NORMAL';
 
   Future<void> _onMapCreated(GoogleMapController _cntlr) async {
     bool _serviceEnabled;
@@ -162,10 +171,6 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
     _controller.animateCamera(CameraUpdate.newLatLngBounds(latLngBoundst, 80));
   }
 
-  LatLng _initialcameraposition = LatLng(36.7525, 3.04197);
-  List<Promotions> promotions = [];
-  List<NearbyDriver> availableDrivers;
-  String appState = 'NORMAL';
   void commander() {
     appState = "REQUESTING";
     availableDrivers = FireHelper.nearbyDriverList;
@@ -173,7 +178,6 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
   }
 
   void startListening(LatLng currentPosition) {
-    print("Before length :" + FireHelper.nearbyDriverList.length.toString());
     Geofire.queryAtLocation(
             currentPosition.latitude, currentPosition.longitude, 20)
         .listen((map) {
@@ -187,9 +191,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
             nearbyDriver.latitude = map['latitude'];
             nearbyDriver.longitude = map['longitude'];
             if (FireHelper.contains(map['key']) == true) {
-              print(map['key'].toString() + " Contains");
             } else {
-              print("Adding");
               FireHelper.nearbyDriverList.add(nearbyDriver);
             }
             break;
@@ -209,8 +211,6 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
             break;
 
           case Geofire.onGeoQueryReady:
-            print("after length :" +
-                FireHelper.nearbyDriverList.length.toString());
             break;
         }
       }
@@ -269,9 +269,9 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
             event.snapshot.value['driver_location']['latitude'].toString());
         double driverLng = double.parse(
             event.snapshot.value['driver_location']['longitude'].toString());
-        LatLng driverLocation = LatLng(driverLat, driverLng);
 
         if (status == 'accepted') {
+          EasyLoading.dismiss();
         } else if (status == 'ontrip') {
         } else if (status == 'arrived') {
           setState(() {
@@ -284,8 +284,20 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
       }
 
       if (status == 'accepted') {
+        if (codes.isEmpty) {
+          codes.clear();
+          for (Promotions promo in promotions) {
+            if (promo.utilise == 2) {
+              codes.add(promo.code);
+            }
+          }
+          Map<String, dynamic> args = {"codes": codes};
+          await ApiCalls().extrairepromo(context, authprovider.token,
+              authprovider.client.idClient.toString(), codes);
+          print("removing promotions");
+        }
         Geofire.stopListener();
-        print('accepted');
+        print(' request got accepted , stopping geofire listener ... ');
       }
 
       if (status == 'ended') {
@@ -314,25 +326,41 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
     driverCarDetails = '';
     tripStatusDisplay = 'Driver is Arriving';
 
+    EasyLoading.dismiss();
+    print("Resetting app");
     Geofire.stopListener();
     Geofire.initialize('driversAvailable');
     startListening(LatLng(currentPosition.latitude, currentPosition.longitude));
   }
 
   void findDriver() {
-    if (availableDrivers.length == 0) {
-      print("available drivers = 0");
-      resetApp();
-      cancelRequest();
-      resetApp();
-      print("No available drivers");
+    if (status != 'accepted') {
+      if (availableDrivers.length == 0) {
+        print("available drivers = 0 , resetting app");
+        cancelRequest();
+        resetApp();
+        print("No available drivers");
+        noDriverFound();
+        return;
+      }
+      var driver = availableDrivers[0];
+
+      notifyDriver(driver);
+      availableDrivers.removeAt(0);
+    } else {
+      EasyLoading.dismiss();
+      print("Dismissing from finddriver");
+      availableDrivers.clear();
+      print("Clearing and returning");
       return;
     }
-    var driver = availableDrivers[0];
+  }
 
-    notifyDriver(driver);
-    availableDrivers.removeAt(0);
-    print("Notified driver :" + driver.key.toString());
+  void noDriverFound() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) => NoDriverDialog());
   }
 
   void notifyDriver(NearbyDriver driver) {
@@ -348,6 +376,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
     tokenRef.once().then((DataSnapshot snapshot) {
       if (snapshot.value != null) {
         String token = snapshot.value.toString();
+        print("Token to notify: " + token.toString());
         // send notification to selected driver
         HelperMethods.sendNotification(token, context, rideRef.key);
       } else {
@@ -362,8 +391,16 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
           driverTripRef.set('cancelled');
           driverTripRef.onDisconnect();
           timer.cancel();
-          driverRequestTimeout = 10;
+          driverRequestTimeout = 20;
         }
+        if (status == 'accepted') {
+          EasyLoading.dismiss();
+          print("Livraison Accepted");
+          driverTripRef.set('accepted');
+          driverTripRef.onDisconnect();
+          timer.cancel();
+        }
+        print(driverRequestTimeout.toString());
         driverRequestTimeout--;
         // a value event listener for driver accepting trip request
         driverTripRef.onValue.listen((event) {
@@ -371,15 +408,16 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
           if (event.snapshot.value.toString() == 'accepted') {
             driverTripRef.onDisconnect();
             timer.cancel();
-            driverRequestTimeout = 30;
+            driverRequestTimeout = 20;
           }
         });
 
         if (driverRequestTimeout == 0) {
           //informs driver that ride has timed out
           driverTripRef.set('timeout');
+          print("Timeout");
           driverTripRef.onDisconnect();
-          driverRequestTimeout = 10;
+          driverRequestTimeout = 20;
           timer.cancel();
 
           //select the next closest driver
@@ -457,212 +495,107 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                       i--;
                     }
                   }
-                  return Stack(
-                    children: <Widget>[
-                      Container(
-                        height: screenheigh * 0.4,
-                        child: GoogleMap(
-                          initialCameraPosition:
-                              CameraPosition(target: _initialcameraposition),
-                          mapType: MapType.normal,
-                          onMapCreated: _onMapCreated,
-                          zoomGesturesEnabled: false,
-                          scrollGesturesEnabled: false,
-                          zoomControlsEnabled: false,
-                          polylines: polylineSet,
-                          markers: markersSet,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: FloatingActionButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            backgroundColor: blue,
-                            child: const Icon(Icons.arrow_back, size: 36.0),
+                  if (prixavecpromo < price) {
+                    return Stack(
+                      children: <Widget>[
+                        Container(
+                          height: screenheigh * 0.4,
+                          child: GoogleMap(
+                            initialCameraPosition:
+                                CameraPosition(target: _initialcameraposition),
+                            mapType: MapType.normal,
+                            onMapCreated: _onMapCreated,
+                            zoomGesturesEnabled: false,
+                            scrollGesturesEnabled: false,
+                            zoomControlsEnabled: false,
+                            polylines: polylineSet,
+                            markers: markersSet,
                           ),
                         ),
-                      ),
-                      Positioned(
-                          top: screenheigh * 0.4,
-                          child: Container(
-                            height: screenheigh * 0.6,
-                            width: screenwidth,
-                            child: MaterialApp(
-                              home: DefaultTabController(
-                                length: 3,
-                                child: Scaffold(
-                                    body: Column(
-                                  children: <Widget>[
-                                    TabBar(
-                                      indicatorWeight: 5,
-                                      indicatorColor: blue,
-                                      tabs: [
-                                        Tab(
-                                            icon: Icon(
-                                          IconsClass.delivery,
-                                          color: blue,
-                                          size: 35,
-                                        )),
-                                        Tab(
-                                            icon: Icon(
-                                          IconsClass.package,
-                                          color: blue,
-                                          size: 32,
-                                        )),
-                                        Tab(
-                                            icon: Icon(
-                                          Icons.account_box_outlined,
-                                          color: blue,
-                                          size: 35,
-                                        )),
-                                      ],
-                                    ),
-                                    Expanded(
-                                      flex: 4,
-                                      child: TabBarView(
-                                        children: [
-                                          Container(
-                                            margin: EdgeInsets.only(bottom: 8),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              color: Colors.white,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.grey,
-                                                  blurRadius: 2.0,
-                                                  spreadRadius: 0.0,
-                                                  offset: Offset(2.0,
-                                                      2.0), // shadow direction: bottom right
-                                                )
-                                              ],
-                                            ),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 16.0,
-                                                    right: 16.0,
-                                                  ),
-                                                  child: Container(
-                                                    child: TextField(
-                                                        controller: locationexp,
-                                                        readOnly: true,
-                                                        style: TextStyle(
-                                                            color: blue,
-                                                            fontSize:
-                                                                ResponsiveFlutter.of(
-                                                                        context)
-                                                                    .fontSize(
-                                                                        2),
-                                                            fontFamily:
-                                                                "Nunito",
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                        decoration: CommonSyles
-                                                            .textDecoration(
-                                                                context,
-                                                                "Location expediteur",
-                                                                Icon(
-                                                                  IconsClass
-                                                                      .truck,
-                                                                  color: blue,
-                                                                  size: 35,
-                                                                ))),
-                                                    decoration: BoxDecoration(
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black38,
-                                                          blurRadius: 25,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          left: 16.0,
-                                                          right: 16.0,
-                                                          bottom: 10),
-                                                  child: Container(
-                                                    child: TextField(
-                                                        controller: locationdes,
-                                                        readOnly: true,
-                                                        style: TextStyle(
-                                                            color: blue,
-                                                            fontSize:
-                                                                ResponsiveFlutter.of(
-                                                                        context)
-                                                                    .fontSize(
-                                                                        2),
-                                                            fontFamily:
-                                                                "Nunito",
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                        decoration: CommonSyles
-                                                            .textDecoration(
-                                                                context,
-                                                                "Location destinataire",
-                                                                Icon(
-                                                                  IconsClass
-                                                                      .package,
-                                                                  color: blue,
-                                                                  size: 30,
-                                                                ))),
-                                                    decoration: BoxDecoration(
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black38,
-                                                          blurRadius: 25,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(bottom: 8),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              color: Colors.white,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.grey,
-                                                  blurRadius: 2.0,
-                                                  spreadRadius: 0.0,
-                                                  offset: Offset(2.0,
-                                                      2.0), // shadow direction: bottom right
-                                                )
-                                              ],
-                                            ),
-                                            child: SingleChildScrollView(
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              backgroundColor: blue,
+                              child: const Icon(Icons.arrow_back, size: 36.0),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                            top: screenheigh * 0.4,
+                            child: Container(
+                              height: screenheigh * 0.6,
+                              width: screenwidth,
+                              child: MaterialApp(
+                                home: DefaultTabController(
+                                  length: 3,
+                                  child: Scaffold(
+                                      body: Column(
+                                    children: <Widget>[
+                                      TabBar(
+                                        indicatorWeight: 5,
+                                        indicatorColor: blue,
+                                        tabs: [
+                                          Tab(
+                                              icon: Icon(
+                                            IconsClass.delivery,
+                                            color: blue,
+                                            size: 35,
+                                          )),
+                                          Tab(
+                                              icon: Icon(
+                                            IconsClass.package,
+                                            color: blue,
+                                            size: 32,
+                                          )),
+                                          Tab(
+                                              icon: Icon(
+                                            Icons.account_box_outlined,
+                                            color: blue,
+                                            size: 35,
+                                          )),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        flex: 4,
+                                        child: TabBarView(
+                                          children: [
+                                            Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 8),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey,
+                                                    blurRadius: 2.0,
+                                                    spreadRadius: 0.0,
+                                                    offset: Offset(2.0,
+                                                        2.0), // shadow direction: bottom right
+                                                  )
+                                                ],
+                                              ),
                                               child: Column(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.start,
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
                                                 children: [
                                                   Padding(
                                                     padding:
                                                         const EdgeInsets.only(
-                                                            top: 8,
-                                                            left: 16.0,
-                                                            right: 16.0,
-                                                            bottom: 13),
+                                                      left: 16.0,
+                                                      right: 16.0,
+                                                    ),
                                                     child: Container(
                                                       child: TextField(
-                                                          controller: dimension,
+                                                          controller:
+                                                              locationexp,
                                                           readOnly: true,
                                                           style: TextStyle(
                                                               color: blue,
@@ -679,10 +612,10 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                                           decoration: CommonSyles
                                                               .textDecoration(
                                                                   context,
-                                                                  "Dimensions ( HxL )",
+                                                                  "Location expediteur",
                                                                   Icon(
                                                                     IconsClass
-                                                                        .cube_with_arrows,
+                                                                        .truck,
                                                                     color: blue,
                                                                     size: 35,
                                                                   ))),
@@ -705,7 +638,8 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                                             bottom: 10),
                                                     child: Container(
                                                       child: TextField(
-                                                          controller: poids,
+                                                          controller:
+                                                              locationdes,
                                                           readOnly: true,
                                                           style: TextStyle(
                                                               color: blue,
@@ -722,96 +656,10 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                                           decoration: CommonSyles
                                                               .textDecoration(
                                                                   context,
-                                                                  "Poids (KG)",
+                                                                  "Location destinataire",
                                                                   Icon(
                                                                     IconsClass
-                                                                        .weight,
-                                                                    color: blue,
-                                                                    size: 30,
-                                                                  ))),
-                                                      decoration: BoxDecoration(
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color:
-                                                                Colors.black38,
-                                                            blurRadius: 25,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: 16.0,
-                                                            right: 16.0,
-                                                            bottom: 10),
-                                                    child: Container(
-                                                      child: TextField(
-                                                          controller: valeur,
-                                                          readOnly: true,
-                                                          style: TextStyle(
-                                                              color: blue,
-                                                              fontSize:
-                                                                  ResponsiveFlutter.of(
-                                                                          context)
-                                                                      .fontSize(
-                                                                          2),
-                                                              fontFamily:
-                                                                  "Nunito",
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                          decoration: CommonSyles
-                                                              .textDecoration(
-                                                                  context,
-                                                                  "Valeur (DA)",
-                                                                  Icon(
-                                                                    IconsClass
-                                                                        .price_tag,
-                                                                    color: blue,
-                                                                    size: 30,
-                                                                  ))),
-                                                      decoration: BoxDecoration(
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color:
-                                                                Colors.black38,
-                                                            blurRadius: 25,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: 16.0,
-                                                            right: 16.0,
-                                                            bottom: 10),
-                                                    child: Container(
-                                                      child: TextField(
-                                                          controller: fragilite,
-                                                          readOnly: true,
-                                                          style: TextStyle(
-                                                              color: blue,
-                                                              fontSize:
-                                                                  ResponsiveFlutter.of(
-                                                                          context)
-                                                                      .fontSize(
-                                                                          2),
-                                                              fontFamily:
-                                                                  "Nunito",
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                          decoration: CommonSyles
-                                                              .textDecoration(
-                                                                  context,
-                                                                  "Fragilite",
-                                                                  Icon(
-                                                                    Icons
-                                                                        .accessible_forward_rounded,
+                                                                        .package,
                                                                     color: blue,
                                                                     size: 30,
                                                                   ))),
@@ -829,238 +677,1025 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                                                 ],
                                               ),
                                             ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(bottom: 8),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              color: Colors.white,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.grey,
-                                                  blurRadius: 2.0,
-                                                  spreadRadius: 0.0,
-                                                  offset: Offset(2.0,
-                                                      2.0), // shadow direction: bottom right
-                                                )
-                                              ],
-                                            ),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 16.0,
-                                                    right: 16.0,
-                                                  ),
-                                                  child: Container(
-                                                    child: TextField(
-                                                        controller:
-                                                            destinataire,
-                                                        readOnly: true,
-                                                        style: TextStyle(
-                                                            color: blue,
-                                                            fontSize:
-                                                                ResponsiveFlutter.of(
+                                            Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 8),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey,
+                                                    blurRadius: 2.0,
+                                                    spreadRadius: 0.0,
+                                                    offset: Offset(2.0,
+                                                        2.0), // shadow direction: bottom right
+                                                  )
+                                                ],
+                                              ),
+                                              child: SingleChildScrollView(
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              top: 8,
+                                                              left: 16.0,
+                                                              right: 16.0,
+                                                              bottom: 13),
+                                                      child: Container(
+                                                        child: TextField(
+                                                            controller:
+                                                                dimension,
+                                                            readOnly: true,
+                                                            style: TextStyle(
+                                                                color: blue,
+                                                                fontSize: ResponsiveFlutter.of(
                                                                         context)
                                                                     .fontSize(
                                                                         2),
-                                                            fontFamily:
-                                                                "Nunito",
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                        decoration: CommonSyles
-                                                            .textDecoration(
-                                                                context,
-                                                                "Destinataire",
-                                                                Icon(
-                                                                  Icons
-                                                                      .account_circle,
-                                                                  color: blue,
-                                                                  size: 30,
-                                                                ))),
-                                                    decoration: BoxDecoration(
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black38,
-                                                          blurRadius: 25,
+                                                                fontFamily:
+                                                                    "Nunito",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                            decoration: CommonSyles
+                                                                .textDecoration(
+                                                                    context,
+                                                                    "Dimensions ( HxL )",
+                                                                    Icon(
+                                                                      IconsClass
+                                                                          .cube_with_arrows,
+                                                                      color:
+                                                                          blue,
+                                                                      size: 35,
+                                                                    ))),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black38,
+                                                              blurRadius: 25,
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
+                                                      ),
                                                     ),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          left: 16.0,
-                                                          right: 16.0,
-                                                          bottom: 10),
-                                                  child: Container(
-                                                    child: TextField(
-                                                        controller: telephone,
-                                                        readOnly: true,
-                                                        style: TextStyle(
-                                                            color: blue,
-                                                            fontSize:
-                                                                ResponsiveFlutter.of(
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 16.0,
+                                                              right: 16.0,
+                                                              bottom: 10),
+                                                      child: Container(
+                                                        child: TextField(
+                                                            controller: poids,
+                                                            readOnly: true,
+                                                            style: TextStyle(
+                                                                color: blue,
+                                                                fontSize: ResponsiveFlutter.of(
                                                                         context)
                                                                     .fontSize(
                                                                         2),
-                                                            fontFamily:
-                                                                "Nunito",
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                        decoration: CommonSyles
-                                                            .textDecoration(
-                                                                context,
-                                                                "Numero de telephone",
-                                                                Icon(
-                                                                  Icons.phone,
-                                                                  color: blue,
-                                                                  size: 30,
-                                                                ))),
-                                                    decoration: BoxDecoration(
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black38,
-                                                          blurRadius: 25,
+                                                                fontFamily:
+                                                                    "Nunito",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                            decoration: CommonSyles
+                                                                .textDecoration(
+                                                                    context,
+                                                                    "Poids (KG)",
+                                                                    Icon(
+                                                                      IconsClass
+                                                                          .weight,
+                                                                      color:
+                                                                          blue,
+                                                                      size: 30,
+                                                                    ))),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black38,
+                                                              blurRadius: 25,
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 16.0,
+                                                              right: 16.0,
+                                                              bottom: 10),
+                                                      child: Container(
+                                                        child: TextField(
+                                                            controller: valeur,
+                                                            readOnly: true,
+                                                            style: TextStyle(
+                                                                color: blue,
+                                                                fontSize: ResponsiveFlutter.of(
+                                                                        context)
+                                                                    .fontSize(
+                                                                        2),
+                                                                fontFamily:
+                                                                    "Nunito",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                            decoration: CommonSyles
+                                                                .textDecoration(
+                                                                    context,
+                                                                    "Valeur (DA)",
+                                                                    Icon(
+                                                                      IconsClass
+                                                                          .price_tag,
+                                                                      color:
+                                                                          blue,
+                                                                      size: 30,
+                                                                    ))),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black38,
+                                                              blurRadius: 25,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 16.0,
+                                                              right: 16.0,
+                                                              bottom: 10),
+                                                      child: Container(
+                                                        child: TextField(
+                                                            controller:
+                                                                fragilite,
+                                                            readOnly: true,
+                                                            style: TextStyle(
+                                                                color: blue,
+                                                                fontSize: ResponsiveFlutter.of(
+                                                                        context)
+                                                                    .fontSize(
+                                                                        2),
+                                                                fontFamily:
+                                                                    "Nunito",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                            decoration: CommonSyles
+                                                                .textDecoration(
+                                                                    context,
+                                                                    "Fragilite",
+                                                                    Icon(
+                                                                      Icons
+                                                                          .accessible_forward_rounded,
+                                                                      color:
+                                                                          blue,
+                                                                      size: 30,
+                                                                    ))),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black38,
+                                                              blurRadius: 25,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 8),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey,
+                                                    blurRadius: 2.0,
+                                                    spreadRadius: 0.0,
+                                                    offset: Offset(2.0,
+                                                        2.0), // shadow direction: bottom right
+                                                  )
+                                                ],
+                                              ),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 16.0,
+                                                      right: 16.0,
+                                                    ),
+                                                    child: Container(
+                                                      child: TextField(
+                                                          controller:
+                                                              destinataire,
+                                                          readOnly: true,
+                                                          style: TextStyle(
+                                                              color: blue,
+                                                              fontSize:
+                                                                  ResponsiveFlutter.of(
+                                                                          context)
+                                                                      .fontSize(
+                                                                          2),
+                                                              fontFamily:
+                                                                  "Nunito",
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                          decoration: CommonSyles
+                                                              .textDecoration(
+                                                                  context,
+                                                                  "Destinataire",
+                                                                  Icon(
+                                                                    Icons
+                                                                        .account_circle,
+                                                                    color: blue,
+                                                                    size: 30,
+                                                                  ))),
+                                                      decoration: BoxDecoration(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black38,
+                                                            blurRadius: 25,
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 16.0,
+                                                            right: 16.0,
+                                                            bottom: 10),
+                                                    child: Container(
+                                                      child: TextField(
+                                                          controller: telephone,
+                                                          readOnly: true,
+                                                          style: TextStyle(
+                                                              color: blue,
+                                                              fontSize:
+                                                                  ResponsiveFlutter.of(
+                                                                          context)
+                                                                      .fontSize(
+                                                                          2),
+                                                              fontFamily:
+                                                                  "Nunito",
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                          decoration: CommonSyles
+                                                              .textDecoration(
+                                                                  context,
+                                                                  "Numero de telephone",
+                                                                  Icon(
+                                                                    Icons.phone,
+                                                                    color: blue,
+                                                                    size: 30,
+                                                                  ))),
+                                                      decoration: BoxDecoration(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black38,
+                                                            blurRadius: 25,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                        flex: 3,
-                                        child: Column(
-                                          children: [
-                                            Center(
-                                              child: Text(
-                                                  prix.toString() + " DA",
-                                                  style: TextStyle(
-                                                      color: grey,
-                                                      fontFamily: "Nunito",
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize:
-                                                          ResponsiveFlutter.of(
-                                                                  context)
-                                                              .fontSize(3),
-                                                      decoration: TextDecoration
-                                                          .lineThrough)),
-                                            ),
-                                            Stack(
-                                              children: [
-                                                Align(
-                                                  alignment: Alignment.center,
-                                                  child: Text(
-                                                      prixavecpromo
-                                                              .toStringAsFixed(
-                                                                  0) +
-                                                          " DA",
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: TextStyle(
-                                                        color: blue,
+                                      Expanded(
+                                          flex: 3,
+                                          child: Column(
+                                            children: [
+                                              Center(
+                                                child: Text(
+                                                    prix.toString() + " DA",
+                                                    style: TextStyle(
+                                                        color: redbordeau,
                                                         fontFamily: "Nunito",
                                                         fontWeight:
                                                             FontWeight.bold,
                                                         fontSize:
                                                             ResponsiveFlutter
                                                                     .of(context)
-                                                                .fontSize(5),
-                                                      )),
-                                                ),
-                                                Align(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            right: 25, top: 10),
-                                                    child: Text("-25%",
+                                                                .fontSize(3),
+                                                        decoration:
+                                                            TextDecoration
+                                                                .lineThrough)),
+                                              ),
+                                              Stack(
+                                                children: [
+                                                  Align(
+                                                    alignment: Alignment.center,
+                                                    child: Text(
+                                                        prixavecpromo
+                                                                .toStringAsFixed(
+                                                                    0) +
+                                                            " DA",
+                                                        textAlign:
+                                                            TextAlign.center,
                                                         style: TextStyle(
-                                                          color: red,
+                                                          color: blue,
                                                           fontFamily: "Nunito",
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           fontSize:
                                                               ResponsiveFlutter
                                                                       .of(context)
-                                                                  .fontSize(3),
+                                                                  .fontSize(5),
                                                         )),
                                                   ),
+                                                ],
+                                              ),
+                                              SizedBox(
+                                                height: screenheigh * 0.005,
+                                              ),
+                                              Container(
+                                                height: ResponsiveFlutter.of(
+                                                        context)
+                                                    .hp(7),
+                                                width: ResponsiveFlutter.of(
+                                                        context)
+                                                    .wp(60),
+                                                decoration: BoxDecoration(
+                                                  color: blue,
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                  20),
+                                                          bottomLeft:
+                                                              Radius.circular(
+                                                                  20),
+                                                          bottomRight:
+                                                              Radius.circular(
+                                                                  20)),
                                                 ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: screenheigh * 0.005,
+                                                child: FlatButton(
+                                                  onPressed: () async {
+                                                    provider.changeprix(price);
+                                                    provider
+                                                        .changeprixavecpromo(
+                                                            prixavecpromo);
+                                                    EasyLoading.show(
+                                                        status:
+                                                            'Recherche de livreur en cours...');
+                                                    setState(() {
+                                                      appState = 'REQUESTING';
+                                                    });
+                                                    availableDrivers =
+                                                        FireHelper
+                                                            .nearbyDriverList;
+                                                    print(
+                                                        "available drivers in Confirmer : " +
+                                                            availableDrivers
+                                                                .length
+                                                                .toString());
+                                                    createRideRequest();
+                                                    findDriver();
+                                                  },
+                                                  child: Text(
+                                                    "Confirmer",
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontFamily: "Nunito",
+                                                        fontSize:
+                                                            ResponsiveFlutter
+                                                                    .of(context)
+                                                                .fontSize(3)),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                    ],
+                                  )),
+                                ),
+                              ),
+                            )),
+                      ],
+                    );
+                  } else {
+                    return Stack(
+                      children: <Widget>[
+                        Container(
+                          height: screenheigh * 0.4,
+                          child: GoogleMap(
+                            initialCameraPosition:
+                                CameraPosition(target: _initialcameraposition),
+                            mapType: MapType.normal,
+                            onMapCreated: _onMapCreated,
+                            zoomGesturesEnabled: false,
+                            scrollGesturesEnabled: false,
+                            zoomControlsEnabled: false,
+                            polylines: polylineSet,
+                            markers: markersSet,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              backgroundColor: blue,
+                              child: const Icon(Icons.arrow_back, size: 36.0),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                            top: screenheigh * 0.4,
+                            child: Container(
+                              height: screenheigh * 0.6,
+                              width: screenwidth,
+                              child: MaterialApp(
+                                home: DefaultTabController(
+                                  length: 3,
+                                  child: Scaffold(
+                                      body: Column(
+                                    children: <Widget>[
+                                      TabBar(
+                                        indicatorWeight: 5,
+                                        indicatorColor: blue,
+                                        tabs: [
+                                          Tab(
+                                              icon: Icon(
+                                            IconsClass.delivery,
+                                            color: blue,
+                                            size: 35,
+                                          )),
+                                          Tab(
+                                              icon: Icon(
+                                            IconsClass.package,
+                                            color: blue,
+                                            size: 32,
+                                          )),
+                                          Tab(
+                                              icon: Icon(
+                                            Icons.account_box_outlined,
+                                            color: blue,
+                                            size: 35,
+                                          )),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        flex: 4,
+                                        child: TabBarView(
+                                          children: [
+                                            Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 8),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey,
+                                                    blurRadius: 2.0,
+                                                    spreadRadius: 0.0,
+                                                    offset: Offset(2.0,
+                                                        2.0), // shadow direction: bottom right
+                                                  )
+                                                ],
+                                              ),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 16.0,
+                                                      right: 16.0,
+                                                    ),
+                                                    child: Container(
+                                                      child: TextField(
+                                                          controller:
+                                                              locationexp,
+                                                          readOnly: true,
+                                                          style: TextStyle(
+                                                              color: blue,
+                                                              fontSize:
+                                                                  ResponsiveFlutter.of(
+                                                                          context)
+                                                                      .fontSize(
+                                                                          2),
+                                                              fontFamily:
+                                                                  "Nunito",
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                          decoration: CommonSyles
+                                                              .textDecoration(
+                                                                  context,
+                                                                  "Location expediteur",
+                                                                  Icon(
+                                                                    IconsClass
+                                                                        .truck,
+                                                                    color: blue,
+                                                                    size: 35,
+                                                                  ))),
+                                                      decoration: BoxDecoration(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black38,
+                                                            blurRadius: 25,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 16.0,
+                                                            right: 16.0,
+                                                            bottom: 10),
+                                                    child: Container(
+                                                      child: TextField(
+                                                          controller:
+                                                              locationdes,
+                                                          readOnly: true,
+                                                          style: TextStyle(
+                                                              color: blue,
+                                                              fontSize:
+                                                                  ResponsiveFlutter.of(
+                                                                          context)
+                                                                      .fontSize(
+                                                                          2),
+                                                              fontFamily:
+                                                                  "Nunito",
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                          decoration: CommonSyles
+                                                              .textDecoration(
+                                                                  context,
+                                                                  "Location destinataire",
+                                                                  Icon(
+                                                                    IconsClass
+                                                                        .package,
+                                                                    color: blue,
+                                                                    size: 30,
+                                                                  ))),
+                                                      decoration: BoxDecoration(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black38,
+                                                            blurRadius: 25,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                             Container(
-                                              height:
-                                                  ResponsiveFlutter.of(context)
-                                                      .hp(7),
-                                              width:
-                                                  ResponsiveFlutter.of(context)
-                                                      .wp(60),
+                                              margin:
+                                                  EdgeInsets.only(bottom: 8),
                                               decoration: BoxDecoration(
-                                                color: blue,
-                                                borderRadius: BorderRadius.only(
-                                                    topLeft:
-                                                        Radius.circular(20),
-                                                    bottomLeft:
-                                                        Radius.circular(20),
-                                                    bottomRight:
-                                                        Radius.circular(20)),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey,
+                                                    blurRadius: 2.0,
+                                                    spreadRadius: 0.0,
+                                                    offset: Offset(2.0,
+                                                        2.0), // shadow direction: bottom right
+                                                  )
+                                                ],
                                               ),
-                                              child: FlatButton(
-                                                onPressed: () {
-                                                  EasyLoading.show();
-                                                  setState(() {
-                                                    appState = 'REQUESTING';
-                                                  });
-                                                  availableDrivers = FireHelper
-                                                      .nearbyDriverList;
-                                                  print(
-                                                      "available drivers in Confirmer : " +
-                                                          availableDrivers
-                                                              .toString());
-                                                  createRideRequest();
-                                                  findDriver();
-
-                                                  EasyLoading.dismiss();
-                                                },
-                                                child: Text(
-                                                  "Confirmer",
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontFamily: "Nunito",
-                                                      fontSize:
-                                                          ResponsiveFlutter.of(
-                                                                  context)
-                                                              .fontSize(3)),
+                                              child: SingleChildScrollView(
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              top: 8,
+                                                              left: 16.0,
+                                                              right: 16.0,
+                                                              bottom: 13),
+                                                      child: Container(
+                                                        child: TextField(
+                                                            controller:
+                                                                dimension,
+                                                            readOnly: true,
+                                                            style: TextStyle(
+                                                                color: blue,
+                                                                fontSize: ResponsiveFlutter.of(
+                                                                        context)
+                                                                    .fontSize(
+                                                                        2),
+                                                                fontFamily:
+                                                                    "Nunito",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                            decoration: CommonSyles
+                                                                .textDecoration(
+                                                                    context,
+                                                                    "Dimensions ( HxL )",
+                                                                    Icon(
+                                                                      IconsClass
+                                                                          .cube_with_arrows,
+                                                                      color:
+                                                                          blue,
+                                                                      size: 35,
+                                                                    ))),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black38,
+                                                              blurRadius: 25,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 16.0,
+                                                              right: 16.0,
+                                                              bottom: 10),
+                                                      child: Container(
+                                                        child: TextField(
+                                                            controller: poids,
+                                                            readOnly: true,
+                                                            style: TextStyle(
+                                                                color: blue,
+                                                                fontSize: ResponsiveFlutter.of(
+                                                                        context)
+                                                                    .fontSize(
+                                                                        2),
+                                                                fontFamily:
+                                                                    "Nunito",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                            decoration: CommonSyles
+                                                                .textDecoration(
+                                                                    context,
+                                                                    "Poids (KG)",
+                                                                    Icon(
+                                                                      IconsClass
+                                                                          .weight,
+                                                                      color:
+                                                                          blue,
+                                                                      size: 30,
+                                                                    ))),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black38,
+                                                              blurRadius: 25,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 16.0,
+                                                              right: 16.0,
+                                                              bottom: 10),
+                                                      child: Container(
+                                                        child: TextField(
+                                                            controller: valeur,
+                                                            readOnly: true,
+                                                            style: TextStyle(
+                                                                color: blue,
+                                                                fontSize: ResponsiveFlutter.of(
+                                                                        context)
+                                                                    .fontSize(
+                                                                        2),
+                                                                fontFamily:
+                                                                    "Nunito",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                            decoration: CommonSyles
+                                                                .textDecoration(
+                                                                    context,
+                                                                    "Valeur (DA)",
+                                                                    Icon(
+                                                                      IconsClass
+                                                                          .price_tag,
+                                                                      color:
+                                                                          blue,
+                                                                      size: 30,
+                                                                    ))),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black38,
+                                                              blurRadius: 25,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 16.0,
+                                                              right: 16.0,
+                                                              bottom: 10),
+                                                      child: Container(
+                                                        child: TextField(
+                                                            controller:
+                                                                fragilite,
+                                                            readOnly: true,
+                                                            style: TextStyle(
+                                                                color: blue,
+                                                                fontSize: ResponsiveFlutter.of(
+                                                                        context)
+                                                                    .fontSize(
+                                                                        2),
+                                                                fontFamily:
+                                                                    "Nunito",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                            decoration: CommonSyles
+                                                                .textDecoration(
+                                                                    context,
+                                                                    "Fragilite",
+                                                                    Icon(
+                                                                      Icons
+                                                                          .accessible_forward_rounded,
+                                                                      color:
+                                                                          blue,
+                                                                      size: 30,
+                                                                    ))),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black38,
+                                                              blurRadius: 25,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
+                                              ),
+                                            ),
+                                            Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 8),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey,
+                                                    blurRadius: 2.0,
+                                                    spreadRadius: 0.0,
+                                                    offset: Offset(2.0,
+                                                        2.0), // shadow direction: bottom right
+                                                  )
+                                                ],
+                                              ),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 16.0,
+                                                      right: 16.0,
+                                                    ),
+                                                    child: Container(
+                                                      child: TextField(
+                                                          controller:
+                                                              destinataire,
+                                                          readOnly: true,
+                                                          style: TextStyle(
+                                                              color: blue,
+                                                              fontSize:
+                                                                  ResponsiveFlutter.of(
+                                                                          context)
+                                                                      .fontSize(
+                                                                          2),
+                                                              fontFamily:
+                                                                  "Nunito",
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                          decoration: CommonSyles
+                                                              .textDecoration(
+                                                                  context,
+                                                                  "Destinataire",
+                                                                  Icon(
+                                                                    Icons
+                                                                        .account_circle,
+                                                                    color: blue,
+                                                                    size: 30,
+                                                                  ))),
+                                                      decoration: BoxDecoration(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black38,
+                                                            blurRadius: 25,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 16.0,
+                                                            right: 16.0,
+                                                            bottom: 10),
+                                                    child: Container(
+                                                      child: TextField(
+                                                          controller: telephone,
+                                                          readOnly: true,
+                                                          style: TextStyle(
+                                                              color: blue,
+                                                              fontSize:
+                                                                  ResponsiveFlutter.of(
+                                                                          context)
+                                                                      .fontSize(
+                                                                          2),
+                                                              fontFamily:
+                                                                  "Nunito",
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                          decoration: CommonSyles
+                                                              .textDecoration(
+                                                                  context,
+                                                                  "Numero de telephone",
+                                                                  Icon(
+                                                                    Icons.phone,
+                                                                    color: blue,
+                                                                    size: 30,
+                                                                  ))),
+                                                      decoration: BoxDecoration(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black38,
+                                                            blurRadius: 25,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ],
-                                        )),
-                                  ],
-                                )),
+                                        ),
+                                      ),
+                                      Expanded(
+                                          flex: 3,
+                                          child: Column(
+                                            children: [
+                                              Center(
+                                                child: Text(
+                                                    prix.toString() + " DA",
+                                                    style: TextStyle(
+                                                      color: blue,
+                                                      fontFamily: "Nunito",
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize:
+                                                          ResponsiveFlutter.of(
+                                                                  context)
+                                                              .fontSize(5),
+                                                    )),
+                                              ),
+                                              SizedBox(
+                                                height: screenheigh * 0.01,
+                                              ),
+                                              Container(
+                                                height: ResponsiveFlutter.of(
+                                                        context)
+                                                    .hp(7),
+                                                width: ResponsiveFlutter.of(
+                                                        context)
+                                                    .wp(60),
+                                                decoration: BoxDecoration(
+                                                  color: blue,
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                  20),
+                                                          bottomLeft:
+                                                              Radius.circular(
+                                                                  20),
+                                                          bottomRight:
+                                                              Radius.circular(
+                                                                  20)),
+                                                ),
+                                                child: FlatButton(
+                                                  onPressed: () async {
+                                                    provider.changeprix(price);
+                                                    provider
+                                                        .changeprixavecpromo(
+                                                            prixavecpromo);
+                                                    EasyLoading.show(
+                                                        status:
+                                                            'Recherche de livreur en cours...');
+                                                    setState(() {
+                                                      appState = 'REQUESTING';
+                                                    });
+                                                    availableDrivers =
+                                                        FireHelper
+                                                            .nearbyDriverList;
+                                                    print(
+                                                        "available drivers in Confirmer : " +
+                                                            availableDrivers
+                                                                .length
+                                                                .toString());
+                                                    createRideRequest();
+                                                    findDriver();
+                                                  },
+                                                  child: Text(
+                                                    "Confirmer",
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontFamily: "Nunito",
+                                                        fontSize:
+                                                            ResponsiveFlutter
+                                                                    .of(context)
+                                                                .fontSize(3)),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                    ],
+                                  )),
+                                ),
                               ),
-                            ),
-                          )),
-                    ],
-                  );
+                            )),
+                      ],
+                    );
+                  }
                 } else if (snapshot.hasError) {
                   return Center(child: Text(snapshot.error.toString()));
                 }
@@ -1068,6 +1703,67 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
                   color: blue,
                 );
               })),
+    );
+  }
+
+  Widget _buildPopupDialogdestinataire(BuildContext context) {
+    var screenheigh = MediaQuery.of(context).size.height;
+    var screenwidth = MediaQuery.of(context).size.width;
+    final node = FocusScope.of(context);
+
+    return new AlertDialog(
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_back,
+                  size: 30,
+                  color: blue,
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                },
+              ),
+            ),
+            Center(
+                child: Text('Malheureusement , Aucun livreur disponible',
+                    style: TextStyle(
+                        color: blue,
+                        fontSize: ResponsiveFlutter.of(context).fontSize(3),
+                        fontWeight: FontWeight.bold))),
+            SizedBox(
+              height: screenheigh * 0.02,
+            ),
+            Center(
+              child: Container(
+                height: screenheigh * 0.06,
+                width: screenwidth * 0.4,
+                child: RaisedButton(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20.0),
+                            bottomLeft: Radius.circular(20.0),
+                            bottomRight: Radius.circular(20.0))),
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                    },
+                    color: blue,
+                    child: Text("Ok",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                            fontFamily: "Nunito",
+                            fontWeight: FontWeight.bold))),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

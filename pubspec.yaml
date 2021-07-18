@@ -32,6 +32,7 @@ dependencies:
   cloud_firestore:
   connectivity: ^0.4.8+6
   pinput:
+  im_stepper: ^0.1.2+10
   custom_timer:
   url_launcher:
   flutter_signin_button:

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class CommandeProvider extends ChangeNotifier {
   String _locationexp = "";
   String _locationdes = "";
+  String _wilayaexp = "";
+  String _wilayades = "";
 
   String _dimension = "";
   String _fragilite = "";
@@ -13,6 +15,11 @@ class CommandeProvider extends ChangeNotifier {
   double _valeur = 0;
   double _duration = 0;
   double _distance = 0;
+  double _prix = 0;
+  double _prixavecpromo = 0;
+  String _localitydest = "";
+  String _localityexp = "";
+  int _interwilaya = 0;
 
   String get locationexp => _locationexp;
   String get locationdes => _locationdes;
@@ -25,6 +32,13 @@ class CommandeProvider extends ChangeNotifier {
   String get nomdest => _nomdest;
   String get prenomdest => _prenomdest;
   String get teldest => _teldest;
+  double get prix => _prix;
+  double get prixavecpromo => _prixavecpromo;
+  String get wilayaexp => _wilayaexp;
+  String get wilayades => _wilayades;
+  String get localitydest => _localitydest;
+  String get localityexp => _localityexp;
+  int get interwilaya => _interwilaya;
 
   void changelocationexp(String location) {
     this._locationexp = location;
@@ -33,6 +47,41 @@ class CommandeProvider extends ChangeNotifier {
 
   void changelocationdes(String location) {
     this._locationdes = location;
+    notifyListeners();
+  }
+
+  void changeinterwilaya(int interwilaya) {
+    this._interwilaya = interwilaya;
+    notifyListeners();
+  }
+
+  void changelocalityexp(String location) {
+    this._localityexp = location;
+    notifyListeners();
+  }
+
+  void changelocalitydes(String location) {
+    this._localitydest = location;
+    notifyListeners();
+  }
+
+  void changewilayaexp(String wilaya) {
+    this._wilayaexp = wilaya;
+    notifyListeners();
+  }
+
+  void changewilayades(String location) {
+    this._wilayades = location;
+    notifyListeners();
+  }
+
+  void changeprix(double prix) {
+    this._prix = prix;
+    notifyListeners();
+  }
+
+  void changeprixavecpromo(double prixavecpromo) {
+    this._prixavecpromo = prixavecpromo;
     notifyListeners();
   }
 

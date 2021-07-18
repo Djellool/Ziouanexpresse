@@ -5,6 +5,7 @@ import 'package:ziouanexpress/Models/placePredictions.dart';
 import 'package:ziouanexpress/Provider/commande.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Assistants/requestAssistant.dart';
+import 'package:ziouanexpress/Services/Maps.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -20,7 +21,6 @@ class _SearchScreenState extends State<SearchScreen> {
   Color orange = Color(0xFFF28322);
   Color blue = Color(0xFF382B8C);
   final Color white = Colors.white;
-  var kGoogleApiKey = "AIzaSyC2GWz9vj6BWyIPMGyePxIQb4aqKOcJwz4";
   List<PlacePredictions> placepPredictionList = [];
   final formKey = GlobalKey<FormState>();
   TextEditingController locationexp = TextEditingController();
@@ -229,7 +229,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           child: ListView.separated(
                             itemBuilder: (context, index) {
                               return InkWell(
-                                onTap: () {
+                                onTap: () async {
                                   setState(() {
                                     if (champ == true) {
                                       String exp =
@@ -249,6 +249,20 @@ class _SearchScreenState extends State<SearchScreen> {
                                       locationdes.text = des;
                                     }
                                   });
+                                  var wilaya = await Maps
+                                      .obtainwilayalocalityfrommainadress(
+                                          placepPredictionList[index]
+                                                  .secondaryText +
+                                              " " +
+                                              placepPredictionList[index]
+                                                  .mainText);
+                                  if (champ == true) {
+                                    provider.changewilayaexp(wilaya.first);
+                                    provider.changelocalityexp(wilaya.last);
+                                  } else {
+                                    provider.changewilayades(wilaya.first);
+                                    provider.changelocalitydes(wilaya.last);
+                                  }
                                   node.requestFocus();
                                 },
                                 child: PredictionTile(
