@@ -335,4 +335,50 @@ class ApiCalls {
       print(e.error.toString());
     }
   }
+
+  Future<void> setNote(
+      BuildContext context, String token, int idLivraison, Map data) async {
+    try {
+      Dio.Response response =
+          await dio().post('/Client/SetNote/' + idLivraison.toString(),
+              data: jsonEncode(data),
+              options: Dio.Options(
+                  followRedirects: false,
+                  validateStatus: (status) {
+                    return status < 500;
+                  }));
+      print(response.statusCode.toString());
+      if (response.statusCode == 200) {
+        showTopSnackBar(
+            context,
+            CustomSnackBar.success(
+              backgroundColor: Colors.greenAccent[700],
+              textStyle: TextStyle(
+                  color: Colors.white,
+                  fontFamily: "Nunito",
+                  fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                  fontWeight: FontWeight.w700),
+              message: "Note attribuée avec succées",
+            ));
+        EasyLoading.dismiss();
+      } else {
+        showTopSnackBar(
+          context,
+          CustomSnackBar.error(
+              backgroundColor: Colors.redAccent[700],
+              textStyle: TextStyle(
+                  color: Colors.white,
+                  fontFamily: "Nunito",
+                  fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                  fontWeight: FontWeight.w700),
+              message:
+                  'Une erreur s\'est produite, veuillez réessayer plus tard !'),
+        );
+        EasyLoading.dismiss();
+      }
+    } on Dio.DioError catch (e) {
+      print(e.error.toString());
+    }
+    return null;
+  }
 }

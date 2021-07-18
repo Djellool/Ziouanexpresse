@@ -3,14 +3,17 @@ class ColisExt {
   String fragilite;
   int valeur;
   double poids;
+  String etat;
 
-  ColisExt({this.dimensions, this.fragilite, this.valeur, this.poids});
+  ColisExt(
+      {this.dimensions, this.fragilite, this.valeur, this.poids, this.etat});
 
   ColisExt.fromJson(Map<String, dynamic> json) {
     dimensions = json['dimensions'];
     fragilite = json['fragilite'];
     valeur = json['valeur'];
     poids = json['poids'].toDouble();
+    etat = json['etat'];
   }
 
   Map<String, dynamic> toJson() {
@@ -19,6 +22,8 @@ class ColisExt {
     data['fragilite'] = this.fragilite;
     data['valeur'] = this.valeur;
     data['poids'] = this.poids;
+    data['etat'] = this.etat;
+
     return data;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
@@ -32,24 +33,31 @@ class HistoriqueDetail extends StatelessWidget {
           ]),
           builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
             if (snapshot.hasData) {
-              print(snapshot.data[1].poids.toString());
               return Scaffold(
                 appBar: CommonSyles.appbar(context, "Détails de livraison"),
                 body: Container(
                   width: ResponsiveFlutter.of(context).wp(100),
                   child: Column(children: [
                     avatar(context,
-                        snapshot.data[0].nom + snapshot.data[0].prenom),
+                        snapshot.data[0].nom + " " + snapshot.data[0].prenom),
                     date(context, snapshot.data[0].createdAt),
-                    ratingbar(context, snapshot.data[0].note),
+                    ratingbar(
+                        context, snapshot.data[0].note, snapshot.data[1].etat),
                     cout(
                         context,
                         snapshot.data[0].prix.toString(),
                         snapshot.data[1].dimensions,
                         snapshot.data[1].fragilite,
                         snapshot.data[1].valeur.toString(),
-                        snapshot.data[1].poids.toString()),
-                    destination(context, "A traiter", "A traiter")
+                        snapshot.data[1].poids.toString(),
+                        snapshot.data[1].etat),
+                    destination(
+                      context,
+                      snapshot.data[0].localityPick,
+                      snapshot.data[0].localityDrop,
+                      snapshot.data[0].adresse,
+                      snapshot.data[0].adresseDropOff,
+                    )
                   ]),
                 ),
               );
@@ -107,14 +115,13 @@ class HistoriqueDetail extends StatelessWidget {
     );
   }
 
-  Widget ratingbar(context, double note) {
+  Widget ratingbar(context, double note, String etat) {
     return RatingBar(
       itemSize: ResponsiveFlutter.of(context).fontSize(4.5),
       initialRating: note,
       direction: Axis.horizontal,
-      allowHalfRating: true,
-      ignoreGestures: true,
       itemCount: 5,
+      ignoreGestures: etat != "en cours" ? false : true,
       ratingWidget: RatingWidget(
         full:
             Image(color: violet, image: AssetImage('assets/images/heart.png')),
@@ -124,12 +131,21 @@ class HistoriqueDetail extends StatelessWidget {
             color: violet, image: AssetImage('assets/images/heart_border.png')),
       ),
       itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-      onRatingUpdate: (rating) {},
+      onRatingUpdate: (rating) {
+        Map data = {"note": rating};
+
+        EasyLoading.show();
+        ApiCalls().setNote(
+            context,
+            Provider.of<AuthProvider>(context, listen: false).token,
+            idLivraison,
+            data);
+      },
     );
   }
 
   Widget cout(context, String prix, String dimension, String fragilite,
-      String valeur, String poids) {
+      String valeur, String poids, String etat) {
     return Container(
       margin: EdgeInsets.only(top: ResponsiveFlutter.of(context).scale(24)),
       width: ResponsiveFlutter.of(context).wp(90),
@@ -180,7 +196,7 @@ class HistoriqueDetail extends StatelessWidget {
                   showDialog(
                       context: context,
                       builder: (BuildContext context) => _buildPopupDialog(
-                          context, dimension, fragilite, valeur, poids));
+                          context, dimension, fragilite, valeur, poids, etat));
                 },
                 color: violet,
                 height: ResponsiveFlutter.of(context).hp(16),
@@ -203,7 +219,8 @@ class HistoriqueDetail extends StatelessWidget {
     );
   }
 
-  Widget destination(context, String pickup, String dropoff) {
+  Widget destination(context, String pickup, String dropoff, String adresseDrop,
+      String adressePick) {
     return Container(
       margin: EdgeInsets.only(top: ResponsiveFlutter.of(context).scale(16)),
       width: ResponsiveFlutter.of(context).wp(90),
@@ -267,24 +284,17 @@ class HistoriqueDetail extends StatelessWidget {
                         fontSize: ResponsiveFlutter.of(context).fontSize(3.5),
                       ),
                     ),
-                    Text(
-                      "à 5min",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: grey2,
-                        fontFamily: "Nunito",
-                        fontSize: ResponsiveFlutter.of(context).fontSize(2),
-                      ),
-                    ),
                   ],
                 ),
-                Text(
-                  "Chemin de Ziouane, Kouba, Alger ",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: grey2,
-                    fontFamily: "Nunito",
-                    fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                    adressePick,
+                    style: TextStyle(
+                      color: grey2,
+                      fontFamily: "Nunito",
+                      fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                    ),
                   ),
                 ),
                 Container(
@@ -302,13 +312,15 @@ class HistoriqueDetail extends StatelessWidget {
                     fontSize: ResponsiveFlutter.of(context).fontSize(3.5),
                   ),
                 ),
-                Text(
-                  "Chemin de Ziouane, Hydra, Alger ",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: grey2,
-                    fontFamily: "Nunito",
-                    fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                    adresseDrop,
+                    style: TextStyle(
+                      color: grey2,
+                      fontFamily: "Nunito",
+                      fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                    ),
                   ),
                 ),
               ],
@@ -320,7 +332,7 @@ class HistoriqueDetail extends StatelessWidget {
   }
 
   Widget _buildPopupDialog(BuildContext context, String dimension,
-      String fragilite, String valeur, String poids) {
+      String fragilite, String valeur, String poids, String etat) {
     var screenheigh = MediaQuery.of(context).size.height;
     var screenwidth = MediaQuery.of(context).size.width;
 
@@ -345,6 +357,31 @@ class HistoriqueDetail extends StatelessWidget {
                   Container(
                     width: screenwidth * 0.6,
                     child: TextFormField(
+                      decoration:
+                          CommonSyles.textDecoration(context, "État", null),
+                      readOnly: true,
+                      initialValue: etat,
+                    ),
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black38,
+                          blurRadius: 25,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Container(
+                    width: screenwidth * 0.6,
+                    child: TextFormField(
                       decoration: CommonSyles.textDecoration(
                           context, "Dimensions", null),
                       readOnly: true,
@@ -361,9 +398,6 @@ class HistoriqueDetail extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            SizedBox(
-              height: screenheigh * 0.01,
             ),
             Padding(
               padding: const EdgeInsets.only(top: 15, left: 6.0, right: 6.0),

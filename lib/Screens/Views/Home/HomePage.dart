@@ -1296,6 +1296,18 @@ class NavDrawer extends StatelessWidget {
             onPressed: () => Navigator.push(
                 context, MaterialPageRoute(builder: (context) => Historique())),
             child: ListTile(
+              trailing: Container(
+                width: ResponsiveFlutter.of(context).fontSize(3.2),
+                child: Center(
+                    child: Text(
+                        Provider.of<AuthProvider>(context).client.enCours > 0
+                            ? "●"
+                            : "",
+                        style: TextStyle(
+                          fontSize: ResponsiveFlutter.of(context).fontSize(2.8),
+                          color: Colors.blue[700],
+                        ))),
+              ),
               leading: Icon(
                 Icons.history,
                 color: blue,

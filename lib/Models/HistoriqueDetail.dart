@@ -6,6 +6,8 @@ class HistoriqueDetail {
   String adresseDropOff;
   int prix;
   String createdAt;
+  String localityPick;
+  String localityDrop;
 
   HistoriqueDetail(
       {this.nom,
@@ -14,7 +16,9 @@ class HistoriqueDetail {
       this.adresse,
       this.adresseDropOff,
       this.prix,
-      this.createdAt});
+      this.createdAt,
+      this.localityPick,
+      this.localityDrop});
 
   HistoriqueDetail.fromJson(Map<String, dynamic> json) {
     nom = json['nom'];
@@ -24,6 +28,8 @@ class HistoriqueDetail {
     adresseDropOff = json['adresse_drop_off'];
     prix = json['prix'];
     createdAt = json['created_at'];
+    localityPick = json['locality_pick'];
+    localityDrop = json['locality_drop'];
   }
 
   Map<String, dynamic> toJson() {
@@ -35,6 +41,8 @@ class HistoriqueDetail {
     data['adresse_drop_off'] = this.adresseDropOff;
     data['prix'] = this.prix;
     data['created_at'] = this.createdAt;
+    data['locality_pick'] = this.localityPick;
+    data['locality_drop'] = this.localityDrop;
     return data;
   }
 }
