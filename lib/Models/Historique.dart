@@ -4,13 +4,15 @@ class Historique {
   int idLivraisonExterne;
   int prix;
   String createdAt;
+  String etat;
 
   Historique(
       {this.nom,
       this.prenom,
       this.idLivraisonExterne,
       this.prix,
-      this.createdAt});
+      this.createdAt,
+      this.etat});
 
   Historique.fromJson(Map<String, dynamic> json) {
     nom = json['nom'];
@@ -18,6 +20,7 @@ class Historique {
     idLivraisonExterne = json['id_livraison_externe'];
     prix = json['prix'];
     createdAt = json['created_at'];
+    etat = json['etat'];
   }
 
   Map<String, dynamic> toJson() {
@@ -27,6 +30,7 @@ class Historique {
     data['id_livraison_externe'] = this.idLivraisonExterne;
     data['prix'] = this.prix;
     data['created_at'] = this.createdAt;
+    data['etat'] = this.etat;
     return data;
   }
 }

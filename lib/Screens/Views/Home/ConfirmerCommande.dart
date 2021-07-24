@@ -19,6 +19,7 @@ import 'package:ziouanexpress/Provider/commande.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Screens/Components/icons_class.dart';
 import 'package:location/location.dart';
+import 'package:ziouanexpress/Screens/Views/Home/Driverfound.dart';
 import 'package:ziouanexpress/Services/ApiCalls.dart';
 import 'package:ziouanexpress/Services/Maps.dart';
 import 'package:ziouanexpress/Models/Promotion.dart';
@@ -363,6 +364,13 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
         builder: (BuildContext context) => NoDriverDialog());
   }
 
+  void driverfound() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) => Driverfound());
+  }
+
   void notifyDriver(NearbyDriver driver) {
     DatabaseReference driverTripRef = FirebaseDatabase.instance
         .reference()
@@ -395,7 +403,7 @@ class _ConfirmerCommandeState extends State<ConfirmerCommande> {
         }
         if (status == 'accepted') {
           EasyLoading.dismiss();
-          print("Livraison Accepted");
+          driverfound();
           driverTripRef.set('accepted');
           driverTripRef.onDisconnect();
           timer.cancel();

@@ -1,27 +1,21 @@
-import 'dart:io';
-
 import 'package:custom_timer/custom_timer.dart';
-import 'package:device_info/device_info.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:pinput/pin_put/pin_put.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
+
+import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
-import 'package:ziouanexpress/Provider/InscriptionProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
 import 'package:ziouanexpress/Services/ApiCalls.dart';
 
-class ConfirmSmsScreen extends StatefulWidget {
+class ChangeNumberScreen extends StatefulWidget {
   @override
-  _ConfirmSmsScreenState createState() => _ConfirmSmsScreenState();
+  _ChangeNumberScreenState createState() => _ChangeNumberScreenState();
 }
 
-class _ConfirmSmsScreenState extends State<ConfirmSmsScreen> {
-  String deviceName;
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-
+class _ChangeNumberScreenState extends State<ChangeNumberScreen> {
   final Color violet = Color(0xFF382B8C);
   final Color white = Colors.white;
   final Color grey = Color(0xFFC4C4C4);
@@ -42,21 +36,10 @@ class _ConfirmSmsScreenState extends State<ConfirmSmsScreen> {
         .changeRenvoyerIns(null);
   }
 
-  Future<void> getDeviceName() async {
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      this.deviceName = androidInfo.model;
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      this.deviceName = iosInfo.utsname.machine;
-    }
-  }
-
   @override
   void initState() {
-    getDeviceName();
-    var provider = Provider.of<InscriptionProvider>(context, listen: false);
-    phoneNumber = provider.phoneNumber;
+    var provider = Provider.of<GeneralProvider>(context, listen: false);
+    phoneNumber = provider.telephone;
     super.initState();
     _verifyPhone(phoneNumber);
   }
@@ -64,6 +47,8 @@ class _ConfirmSmsScreenState extends State<ConfirmSmsScreen> {
   @override
   Widget build(BuildContext context) {
     final _pinPutFocusNode = FocusNode();
+    provider = Provider.of<AuthProvider>(context);
+
     return WillPopScope(
       // ignore: missing_return
       onWillPop: () async {
@@ -188,7 +173,6 @@ class _ConfirmSmsScreenState extends State<ConfirmSmsScreen> {
         pinAnimationType: PinAnimationType.fade,
         onSubmit: (pin) async {
           //  try {
-          EasyLoading.show();
           await FirebaseAuth.instance
               .signInWithCredential(PhoneAuthProvider.credential(
                   verificationId: _verificationCode, smsCode: pin))
@@ -196,23 +180,34 @@ class _ConfirmSmsScreenState extends State<ConfirmSmsScreen> {
             if (value.user != null) {
               _changeRenvoyer(context, false);
               Map data = {
-                "nom": Provider.of<InscriptionProvider>(context, listen: false)
-                    .nom,
+                "nom": Provider.of<GeneralProvider>(context, listen: false).nom,
                 "prenom":
-                    Provider.of<InscriptionProvider>(context, listen: false)
-                        .prenom,
+                    Provider.of<GeneralProvider>(context, listen: false).prenom,
                 "telephone": phoneNumber,
                 "email":
-                    Provider.of<InscriptionProvider>(context, listen: false)
-                        .eMail,
-                "password":
-                    Provider.of<InscriptionProvider>(context, listen: false)
-                        .password,
-                "device_name": this.deviceName
+                    Provider.of<GeneralProvider>(context, listen: false).eMail,
               };
-              ApiCalls().inscription(data, context);
+              ApiCalls().changeClientInfo(context, data,
+                  provider.client.idClient.toString(), provider.token);
+
+              print("inside here");
             }
           });
+          /* } catch (e) {
+            FocusScope.of(context).unfocus();
+            print(e.toString());
+            return showTopSnackBar(
+                context,
+                CustomSnackBar.error(
+                  backgroundColor: Colors.redAccent[700],
+                  textStyle: TextStyle(
+                      color: Colors.white,
+                      fontFamily: "Nunito",
+                      fontSize: ResponsiveFlutter.of(context).fontSize(2),
+                      fontWeight: FontWeight.w700),
+                  message: "Code non valide, Veuillez réessayer",
+                ));
+          }*/
         },
       ),
     );
@@ -291,20 +286,17 @@ class _ConfirmSmsScreenState extends State<ConfirmSmsScreen> {
               .then((value) async {
             if (value.user != null) {
               _changeRenvoyer(context, false);
-              Map data = {
-                "nom": Provider.of<InscriptionProvider>(context, listen: false)
-                    .nom,
+              Map<String, dynamic> data = {
+                "nom": Provider.of<GeneralProvider>(context, listen: false).nom,
                 "prenom":
-                    Provider.of<InscriptionProvider>(context, listen: false)
-                        .prenom,
+                    Provider.of<GeneralProvider>(context, listen: false).prenom,
                 "telephone": phoneNumber,
                 "email":
-                    Provider.of<InscriptionProvider>(context, listen: false)
-                        .eMail,
-                "password": Provider.of<InscriptionProvider>(context).password,
-                "device_name": this.deviceName
+                    Provider.of<GeneralProvider>(context, listen: false).eMail,
               };
-              ApiCalls().inscription(data, context);
+              ApiCalls().changeClientInfo(
+                  context, data, provider.token, provider.client.idClient);
+              Navigator.pop(context, true);
             }
           });
         },

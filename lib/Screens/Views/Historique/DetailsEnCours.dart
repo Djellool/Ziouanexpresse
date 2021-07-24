@@ -42,39 +42,49 @@ class _DetailsEnCoursState extends State<DetailsEnCours> {
                 body: Container(
                   height: 700,
                   width: ResponsiveFlutter.of(context).wp(100),
-                  child: Column(children: [
-                    avatar(context, snapshot.data.nom + snapshot.data.prenom),
-                    price(context, snapshot.data.prix.toString()),
-                    Expanded(
-                      child: NumberStepper(
-                        enableNextPreviousButtons: false,
-                        activeStepColor: orange,
-                        activeStepBorderColor: blue,
-                        activeStepBorderWidth: 3,
-                        activeStepBorderPadding: 0,
-                        stepRadius: 26,
-                        numberStyle: TextStyle(
-                            color: white,
-                            fontFamily: "Nunito",
-                            fontWeight: FontWeight.w600,
-                            fontSize:
-                                ResponsiveFlutter.of(context).fontSize(4)),
-                        stepColor: blue,
-                        direction: Axis.vertical,
-                        numbers: [1, 2, 3, 4, 5],
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: avatar(context,
+                              snapshot.data.nom + snapshot.data.prenom),
+                        ),
+                        Center(
+                            child:
+                                price(context, snapshot.data.prix.toString())),
+                        Expanded(
+                          child: Container(
+                            width: 100,
+                            child: NumberStepper(
+                              enableNextPreviousButtons: false,
+                              activeStepColor: orange,
+                              activeStepBorderColor: blue,
+                              activeStepBorderWidth: 3,
+                              activeStepBorderPadding: 0,
+                              stepRadius: 26,
+                              numberStyle: TextStyle(
+                                  color: white,
+                                  fontFamily: "Nunito",
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: ResponsiveFlutter.of(context)
+                                      .fontSize(4)),
+                              stepColor: blue,
+                              direction: Axis.vertical,
+                              numbers: [1, 2, 3, 4, 5],
 
-                        // activeStep property set to activeStep variable defined above.
-                        activeStep: activeStep,
+                              // activeStep property set to activeStep variable defined above.
+                              activeStep: activeStep,
 
-                        // This ensures step-tapping updates the activeStep.
-                        onStepReached: (index) {
-                          setState(() {
-                            activeStep = index;
-                          });
-                        },
-                      ),
-                    ),
-                  ]),
+                              // This ensures step-tapping updates the activeStep.
+                              onStepReached: (index) {
+                                setState(() {
+                                  activeStep = index;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      ]),
                 ),
               );
             } else if (snapshot.hasError) {

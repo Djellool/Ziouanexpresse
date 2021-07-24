@@ -1,8 +1,10 @@
+import 'dart:io';
+
+import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
-import 'package:ziouanexpress/Assistants/HelperMethods.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Provider/GeneralProvider.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
@@ -15,6 +17,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  String deviceName;
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
   final Color violet = Color(0xFF382B8C);
   final Color white = Colors.white;
   final Color grey = Color(0xFFC4C4C4);
@@ -28,6 +33,22 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController(text: "password");
 
   bool tried = false;
+
+  Future<void> getDeviceName() async {
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      this.deviceName = androidInfo.model;
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      this.deviceName = iosInfo.utsname.machine;
+    }
+  }
+
+  @override
+  void initState() {
+    getDeviceName();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -251,16 +272,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           Map map = {
                             "telephone": phoneController.text,
                             "password": passwordController.text,
-                            "device_name": "samsung"
+                            "device_name": this.deviceName
                           };
                           var response = await Provider.of<AuthProvider>(
                                   context,
                                   listen: false)
                               .login(context, map);
                           EasyLoading.dismiss();
-                          setState(() {
-                            tried = false;
-                          });
+                          if (!mounted)
+                            setState(() {
+                              tried = false;
+                            });
                           if (response == null) {
                             setState(() {
                               tried = true;

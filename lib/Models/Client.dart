@@ -12,6 +12,7 @@ class Client {
   int nbPoints;
   String createdAt;
   String updatedAt;
+  int enCours;
 
   Client(
       {this.idClient,
@@ -26,7 +27,8 @@ class Client {
       this.code,
       this.nbPoints,
       this.createdAt,
-      this.updatedAt});
+      this.updatedAt,
+      this.enCours});
 
   Client.fromJson(Map<String, dynamic> json) {
     idClient = json['id_client'];
@@ -42,6 +44,7 @@ class Client {
     nbPoints = json['nb_points'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
+    enCours = json['EnCours'];
   }
 
   Map<String, dynamic> toJson() {
@@ -59,6 +62,7 @@ class Client {
     data['nb_points'] = this.nbPoints;
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;
+    data['EnCours'] = this.enCours;
     return data;
   }
 }

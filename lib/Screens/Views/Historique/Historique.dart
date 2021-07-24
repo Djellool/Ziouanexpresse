@@ -46,6 +46,9 @@ class _HistoriqueState extends State<Historique> {
                             builder: (context) => HistoriqueDetail(
                                 snapshot.data[index].idLivraisonExterne))),
                     visualDensity: VisualDensity.comfortable,
+                    tileColor: snapshot.data[index].etat == 'en cours'
+                        ? Colors.blue[50]
+                        : null,
                     contentPadding:
                         EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                     leading: avatar(context),
