@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:responsive_flutter/responsive_flutter.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
 import 'package:ziouanexpress/Screens/Components/CommunStyles.dart';
-import 'package:ziouanexpress/Screens/Views/Historique/DetailsEnCours.dart';
 import 'package:ziouanexpress/Screens/Views/Historique/HistoriqueD%C3%A9tail.dart';
 import 'package:ziouanexpress/Services/ApiCalls.dart';
 

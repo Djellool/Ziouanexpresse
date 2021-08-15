@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:ziouanexpress/Provider/Auth.dart';
@@ -28,7 +26,7 @@ class HelperMethods {
 
     String nom = provider2.client.nom;
     String prenom = provider2.client.prenom;
-    int id_client = provider2.client.idClient;
+    int idClient = provider2.client.idClient;
     String tel = provider2.client.telephone;
     String dimension = provider.dimension;
     String fragilite = provider.fragilite;
@@ -61,7 +59,7 @@ class HelperMethods {
     Map dataMap = {
       'click_action': 'FLUTTER_NOTIFICATION_CLICK',
       'content_available': true,
-      'id_client': id_client,
+      'id_client': idClient,
       'nom': nom + " " + prenom,
       'pickup': pickup,
       'dropoff': dropoff,
@@ -94,7 +92,7 @@ class HelperMethods {
       'to': token
     };
 
-    var response = await http.post('https://fcm.googleapis.com/fcm/send',
+    await http.post('https://fcm.googleapis.com/fcm/send',
         headers: headerMap, body: jsonEncode(bodyMap));
   }
 
@@ -144,5 +142,6 @@ class HelperMethods {
         }
       }
     }
+    return null;
   }
 }
